@@ -1,23 +1,32 @@
-<script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-analytics.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>سوق أرشي</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
 
-  // Your web app's Firebase configuration
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-  const firebaseConfig = {
-    apiKey: "AIzaSyD3hAvhSDs-lX7ORCOR0DODT3l_S_gJA2o",
-    authDomain: "arshi-market.firebaseapp.com",
-    projectId: "arshi-market",
-    storageBucket: "arshi-market.firebasestorage.app",
-    messagingSenderId: "930764899868",
-    appId: "1:930764899868:web:06795817be84f0a68a01d9",
-    measurementId: "G-CCR0B650WG"
-  };
+  <h1>مرحبا بك في سوق أرشي 🛒</h1>
+  <p>الموقع يعمل بنجاح 🎉</p>
 
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-</script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-analytics.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD3hAvhSDs-1X7ORC0R0DOT31_s_pJAz8",
+      authDomain: "arshi-market.firebaseapp.com",
+      projectId: "arshi-market",
+      storageBucket: "arshi-market.appspot.com",
+      messagingSenderId: "930764899868",
+      appId: "1:930764899868:web:06795817be840a8a01d9",
+      measurementId: "G-CCR0B650WG"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+  </script>
+
+</body>
+</html>
