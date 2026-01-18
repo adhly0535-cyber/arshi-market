@@ -4,29 +4,19 @@
   <meta charset="UTF-8">
   <title>سوق أرشي</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- ملف التنسيق -->
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <h1>مرحبا بك في سوق أرشي 🛒</h1>
+  <h1>مرحباً بك في سوق أرشي</h1>
   <p>الموقع يعمل بنجاح 🎉</p>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-analytics.js";
+  <button id="loginBtn">تسجيل الدخول عبر Google</button>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyD3hAvhSDs-1X7ORC0R0DOT31_s_pJAz8",
-      authDomain: "arshi-market.firebaseapp.com",
-      projectId: "arshi-market",
-      storageBucket: "arshi-market.appspot.com",
-      messagingSenderId: "930764899868",
-      appId: "1:930764899868:web:06795817be840a8a01d9",
-      measurementId: "G-CCR0B650WG"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
-  </script>
+  <!-- ملف الجافاسكربت (فيه Firebase كله) -->
+  <script type="module" src="app.js"></script>
 
 </body>
 </html>
