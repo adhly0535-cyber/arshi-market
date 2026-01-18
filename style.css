@@ -1,54 +1,24 @@
-/* إعدادات عامة */
-* {
-  box-sizing: border-box;
-  font-family: "Cairo", Tahoma, Arial, sans-serif;
-}
-
 body {
-  margin: 0;
-  padding: 0;
-  background: linear-gradient(135deg, #f5f7fa, #e4ecf7);
-  color: #222;
+  font-family: Arial, sans-serif;
   text-align: center;
-  direction: rtl;
+  background: #f5f5f5;
+  padding-top: 50px;
 }
 
-/* العنوان */
 h1 {
-  margin-top: 60px;
-  font-size: 32px;
-  color: #0d47a1;
+  color: #333;
 }
 
-/* الوصف */
-p {
-  font-size: 18px;
-  margin: 10px 0 30px;
-}
-
-/* زر تسجيل الدخول */
 button {
-  background: #0d47a1;
-  color: #fff;
-  border: none;
-  padding: 14px 26px;
+  padding: 12px 20px;
   font-size: 16px;
-  border-radius: 10px;
+  background: #4285f4;
+  color: white;
+  border: none;
+  border-radius: 6px;
   cursor: pointer;
-  transition: 0.3s;
 }
 
 button:hover {
-  background: #08306b;
-  transform: scale(1.05);
-}
-
-/* صندوق عام (للمستقبل) */
-.container {
-  max-width: 420px;
-  margin: auto;
-  background: #fff;
-  padding: 25px;
-  border-radius: 16px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  background: #357ae8;
 }
