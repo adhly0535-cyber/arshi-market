@@ -30,3 +30,20 @@
       .catch(() => alert("فشل تسجيل الدخول ❌"));
   };
 </script>
+<script type="module">
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
+
+  const auth = getAuth();
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      // المستخدم مسجّل دخول
+      document.getElementById("loginBox").style.display = "none";
+      document.getElementById("welcomeBox").style.display = "block";
+    } else {
+      // المستخدم غير مسجّل
+      document.getElementById("loginBox").style.display = "block";
+      document.getElementById("welcomeBox").style.display = "none";
+    }
+  });
+</script>
