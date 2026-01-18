@@ -1,66 +1,33 @@
-<!DOCTYPE html>
-<html lang="ar">
-<head>
-  <meta charset="UTF-8" />
-  <title>سوق أرشي</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!-- زر تسجيل الدخول -->
+<button id="googleBtn">
+  تسجيل الدخول بواسطة Google
+</button>
 
-  <style>
-    body {
-      font-family: Tahoma, Arial;
-      text-align: center;
-      background: #f2f2f2;
-      padding-top: 60px;
-    }
-    button {
-      background: #1a73e8;
-      color: white;
-      border: none;
-      padding: 15px 25px;
-      font-size: 16px;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #1558b0;
-    }
-  </style>
-</head>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
 
-<body>
+  const firebaseConfig = {
+    apiKey: "AIzaSyD3hAvhSDs-lX7ORCOR0DODT3l_S_gJA2o",
+    authDomain: "arshi-market.firebaseapp.com",
+    projectId: "arshi-market",
+    storageBucket: "arshi-market.firebasestorage.app",
+    messagingSenderId: "930764899868",
+    appId: "1:930764899868:web:06795817be84f0a68a01d9"
+  };
 
-  <h1>مرحبًا بك في سوق أرشي</h1>
-  <p>موقع بيع وشراء بسيط</p>
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
 
-  <button id="loginBtn">تسجيل الدخول باستخدام Google</button>
-
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyD3hAvhSDs-1X7ORCORD0DT31_s_pJAz8",
-      authDomain: "arshi-market.firebaseapp.com",
-      projectId: "arshi-market",
-      storageBucket: "arshi-market.appspot.com",
-      messagingSenderId: "930764899868",
-      appId: "1:930764899868:web:06795817be840a8a01d9"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
-
-    document.getElementById("loginBtn").onclick = () => {
-      signInWithPopup(auth, provider)
-        .then((result) => {
-          alert("تم تسجيل الدخول: " + result.user.displayName);
-        })
-        .catch((error) => {
-          alert("خطأ: " + error.message);
-        });
-    };
-  </script>
-
-</body>
-</html>
+  document.getElementById("googleBtn").onclick = () => {
+    signInWithPopup(auth, provider)
+      .then((result) => {
+        alert("تم تسجيل الدخول ✅\n" + result.user.email);
+      })
+      .catch((error) => {
+        console.error(error);
+        alert("فشل تسجيل الدخول ❌");
+      });
+  };
+</script>
