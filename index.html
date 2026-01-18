@@ -22,12 +22,7 @@
 
   document.getElementById("googleBtn").onclick = () => {
     signInWithPopup(auth, provider)
-      .then((result) => {
-        alert("تم تسجيل الدخول ✅\n" + result.user.email);
-      })
-      .catch((error) => {
-        console.error(error);
-        alert("فشل تسجيل الدخول ❌");
-      });
+      .then(() => alert("تم تسجيل الدخول ✅"))
+      .catch(() => alert("فشل تسجيل الدخول ❌"));
   };
 </script>
