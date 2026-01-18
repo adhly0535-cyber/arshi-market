@@ -1,49 +1,75 @@
-<div style="display:block; color:black; background:#fff; padding:10px;">
-  <h1>مرحبًا بك في سوق أرشي</h1>
-  <p>سوق بيع وشراء</p>
-</div>
-<!-- زر تسجيل الدخول -->
-<button id="googleBtn">
-  تسجيل الدخول بواسطة Google
-</button>
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8" />
+  <title>سوق أرشي</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+</head>
+<body style="font-family: Arial; background:#f5f5f5; text-align:center; padding-top:40px;">
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
-  import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
+  <!-- النص الترحيبي -->
+  <div id="welcomeText">
+    <h1>مرحباً بك في سوق أرشي</h1>
+    <p>سوق بيع وشراء</p>
+  </div>
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyD3hAvhSDs-lX7ORCOR0DODT3l_S_gJA2o",
-    authDomain: "arshi-market.firebaseapp.com",
-    projectId: "arshi-market",
-    storageBucket: "arshi-market.firebasestorage.app",
-    messagingSenderId: "930764899868",
-    appId: "1:930764899868:web:06795817be84f0a68a01d9"
-  };
+  <!-- زر تسجيل الدخول -->
+  <div id="loginBox">
+    <button id="googleLogin" style="padding:10px 20px; font-size:16px;">
+      تسجيل الدخول بواسطة Google
+    </button>
+  </div>
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const provider = new GoogleAuthProvider();
+  <!-- بعد تسجيل الدخول -->
+  <div id="successBox" style="display:none;">
+    <h2>✅ تم تسجيل الدخول بنجاح</h2>
+    <p>سيتم تحويلك الآن...</p>
+  </div>
 
-  document.getElementById("googleBtn").onclick = () => {
-    signInWithPopup(auth, provider)
-      .then(() => alert("تم تسجيل الدخول ✅"))
-      .catch(() => alert("فشل تسجيل الدخول ❌"));
-  };
-</script>
-<script type="module">
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
+  <!-- Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+    import { 
+      getAuth, 
+      GoogleAuthProvider, 
+      signInWithPopup 
+    } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
 
-  const auth = getAuth();
+    const firebaseConfig = {
+      apiKey: "AIzaSyD3hAvhSDs-lX7ORCOR0DODT3l_S_gJA2o",
+      authDomain: "arshi-market.firebaseapp.com",
+      projectId: "arshi-market",
+      storageBucket: "arshi-market.firebasestorage.app",
+      messagingSenderId: "930764899868",
+      appId: "1:930764899868:web:06795817be84f0a68a01d9"
+    };
 
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      // المستخدم مسجّل دخول
-      document.getElementById("loginBox").style.display = "none";
-      document.getElementById("welcomeBox").style.display = "block";
-    } else {
-      // المستخدم غير مسجّل
-      document.getElementById("loginBox").style.display = "block";
-      document.getElementById("welcomeBox").style.display = "none";
-    }
-  });
-</script>
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+
+    const loginBtn = document.getElementById("googleLogin");
+    const loginBox = document.getElementById("loginBox");
+    const welcomeText = document.getElementById("welcomeText");
+    const successBox = document.getElementById("successBox");
+
+    loginBtn.onclick = () => {
+      signInWithPopup(auth, provider)
+        .then(() => {
+          welcomeText.style.display = "none";
+          loginBox.style.display = "none";
+          successBox.style.display = "block";
+
+          // تحويل لصفحة ثانية بعد 2 ثانية
+          setTimeout(() => {
+            window.location.href = "home.html";
+          }, 2000);
+        })
+        .catch((error) => {
+          alert(error.message);
+        });
+    };
+  </script>
+
+</body>
+</html>
