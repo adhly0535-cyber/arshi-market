@@ -1,45 +1,60 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar">
 <head>
   <meta charset="UTF-8">
-  <title>Arshi Market</title>
-
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <title>سوق أرشي</title>
 </head>
 <body>
 
-  <h1>Welcome to Arshi Market</h1>
-  <p>The global marketplace for buying and selling</p>
+  <h1 id="welcomeText">مرحباً بك في سوق أرشي</h1>
+  <p id="loginBox">سوق بيع وشراء</p>
 
-  <button onclick="googleLogin()">Sign in with Google</button>
+  <button id="googleLogin">تسجيل الدخول بواسطة Google</button>
 
-  <script>
-    // 🔴 ضع إعدادات Firebase الحقيقية من مشروعك (لا تغيّرها)
+  <div id="successBox" style="display:none;">
+    <h3>✅ تم تسجيل الدخول بنجاح</h3>
+    <p>سيتم تحويلك الآن...</p>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
+
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT.firebaseapp.com",
-      projectId: "YOUR_PROJECT_ID",
-      appId: "YOUR_APP_ID"
+      apiKey: "AIzaSyD3hAvhSDs-lX7ORCOR0DODT3l_S_gJA2o",
+      authDomain: "arshi-market.firebaseapp.com",
+      projectId: "arshi-market",
+      storageBucket: "arshi-market.firebasestorage.app",
+      messagingSenderId: "930764899868",
+      appId: "1:930764899868:web:06795817be84f0a68a01d9"
     };
 
-    firebase.initializeApp(firebaseConfig);
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
 
-    function googleLogin() {
-      const provider = new firebase.auth.GoogleAuthProvider();
+    const loginBtn = document.getElementById("googleLogin");
+    const loginBox = document.getElementById("loginBox");
+    const welcomeText = document.getElementById("welcomeText");
+    const successBox = document.getElementById("successBox");
 
-      firebase.auth()
-        .signInWithPopup(provider)
+    loginBtn.onclick = () => {
+      signInWithPopup(auth, provider)
         .then(() => {
-          // بعد اختيار حساب Google
-          window.location.href = "country.html";
+          welcomeText.style.display = "none";
+          loginBox.style.display = "none";
+          loginBtn.style.display = "none";
+          successBox.style.display = "block";
+
+          // ⬅️ التحويل إلى شاشة اختيار الدولة
+          setTimeout(() => {
+            window.location.href = "country.html";
+          }, 2000);
         })
         .catch((error) => {
-          alert("Google login failed");
-          console.error(error);
+          alert(error.message);
         });
-    }
+    };
   </script>
 
 </body>
