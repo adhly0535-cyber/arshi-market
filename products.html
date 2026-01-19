@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>المنتجات</title>
+</head>
+<body>
+
+  <h2>🛒 المنتجات المتاحة</h2>
+  <p id="country"></p>
+
+  <ul>
+    <li>🚗 سيارة</li>
+    <li>📱 هاتف</li>
+    <li>🏠 منزل</li>
+    <li>💻 لابتوب</li>
+  </ul>
+
+  <script>
+    const country = localStorage.getItem("userCountry");
+    document.getElementById("country").innerText =
+      "الدولة المختارة: " + country;
+  </script>
+
+</body>
+</html>
