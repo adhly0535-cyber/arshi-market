@@ -2,24 +2,61 @@
 <html lang="ar">
 <head>
   <meta charset="UTF-8">
-  <title>المنتجات</title>
+  <title>المنتجات المتاحة</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      padding: 10px;
+      margin: 8px 0;
+      background: #f2f2f2;
+      cursor: pointer;
+    }
+    .product {
+      margin-top: 15px;
+      padding: 10px;
+      border: 1px solid #ddd;
+    }
+  </style>
 </head>
 <body>
 
   <h2>🛒 المنتجات المتاحة</h2>
-  <p id="country"></p>
+
+  <p id="countryText"></p>
 
   <ul>
-    <li>🚗 سيارة</li>
-    <li>📱 هاتف</li>
-    <li>🏠 منزل</li>
-    <li>💻 لابتوب</li>
+    <li onclick="showProducts('car')">🚗 سيارات</li>
+    <li onclick="showProducts('house')">🏠 منازل</li>
+     <li onclick="showProducts('phone')">📱 هواتف</li>
+    <li onclick="showProducts('laptop')">💻 لابتوبات</li>
   </ul>
+
+  <div id="products"></div>
 
   <script>
     const country = localStorage.getItem("userCountry");
-    document.getElementById("country").innerText =
-      "الدولة المختارة: " + country;
+    document.getElementById("countryText").innerText =
+      "الدولة المختارة: " + (country || "غير محددة");
+
+    function showProducts(type) {
+      const box = document.getElementById("products");
+
+      box.innerHTML = `
+        <div class="product">
+          <strong>منتج تجريبي</strong><br>
+          النوع: ${type}<br>
+          الدولة: ${country}<br>
+          السعر: سيتم إضافته لاحقًا
+        </div>
+      `;
+    }
   </script>
 
 </body>
