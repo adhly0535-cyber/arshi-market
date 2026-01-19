@@ -6,81 +6,144 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f4f4f4;
       text-align: center;
-      padding: 40px;
+      margin-top: 60px;
     }
-    select {
-      width: 90%;
-      max-width: 400px;
-      padding: 12px;
+    select, button {
+      padding: 10px;
       font-size: 16px;
-      margin-bottom: 20px;
-    }
-    button {
-      padding: 12px 30px;
-      font-size: 16px;
-      background: #0a7cff;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
+      margin-top: 15px;
+      width: 260px;
     }
   </style>
 </head>
 <body>
 
-<h2>🌍 اختر دولتك</h2>
+  <h2>🌍 اختر دولتك</h2>
 
-<select id="country">
-  <option value="">-- اختر الدولة --</option>
-</select>
+  <select id="country">
+    <option value="">-- اختر الدولة --</option>
 
-<br>
-<button onclick="goNext()">متابعة</button>
+    <!-- الدول العربية -->
+    <option>السودان</option>
+    <option>مصر</option>
+    <option>السعودية</option>
+    <option>الإمارات</option>
+    <option>الكويت</option>
+    <option>قطر</option>
+    <option>البحرين</option>
+    <option>عُمان</option>
+    <option>العراق</option>
+    <option>سوريا</option>
+    <option>لبنان</option>
+    <option>الأردن</option>
+    <option>فلسطين</option>
+    <option>اليمن</option>
+    <option>ليبيا</option>
+    <option>تونس</option>
+    <option>الجزائر</option>
+    <option>المغرب</option>
+    <option>موريتانيا</option>
+    <option>جزر القمر</option>
+    <option>الصومال</option>
+    <option>جيبوتي</option>
 
-<script>
-const countries = [
-  "مصر","السودان","جنوب السودان","إثيوبيا","إريتريا","جيبوتي","الصومال","كينيا",
-  "أوغندا","تنزانيا","رواندا","بوروندي","الكونغو","الكونغو الديمقراطية","تشاد",
-  "النيجر","نيجيريا","غانا","ساحل العاج","السنغال","المغرب","الجزائر","تونس",
-  "ليبيا","جنوب أفريقيا","زيمبابوي","زامبيا","ناميبيا","بوتسوانا","أنغولا",
-  "موزمبيق","مالاوي","الكاميرون","غينيا","غينيا بيساو","غامبيا","سيراليون",
-  "ليبيريا","بنين","توغو","بوركينا فاسو","مالي","موريتانيا","الرأس الأخضر",
-  "جزر القمر","سيشل","موريشيوس","مدغشقر",
-  "السعودية","الإمارات","قطر","الكويت","البحرين","عُمان","اليمن",
-  "الأردن","فلسطين","لبنان","سوريا","العراق",
-  "تركيا","إيران",
-  "أفغانستان","باكستان","الهند","نيبال","بنغلاديش","سريلانكا",
-  "الصين","اليابان","كوريا الجنوبية","كوريا الشمالية",
-  "ماليزيا","إندونيسيا","تايلاند","الفلبين","فيتنام",
-  "روسيا","أوكرانيا","بولندا","ألمانيا","فرنسا","إيطاليا","إسبانيا","البرتغال",
-  "هولندا","بلجيكا","سويسرا","النمسا","السويد","النرويج","فنلندا","الدنمارك",
-  "بريطانيا","إيرلندا","اليونان","التشيك","سلوفاكيا","المجر","رومانيا",
-  "بلغاريا","صربيا","كرواتيا",
-  "الولايات المتحدة","كندا","المكسيك",
-  "البرازيل","الأرجنتين","تشيلي","كولومبيا","بيرو","فنزويلا",
-  "أستراليا","نيوزيلندا"
-];
+    <!-- أفريقيا -->
+    <option>إثيوبيا</option>
+    <option>كينيا</option>
+    <option>أوغندا</option>
+    <option>تنزانيا</option>
+    <option>نيجيريا</option>
+    <option>غانا</option>
+    <option>السنغال</option>
+    <option>جنوب أفريقيا</option>
+    <option>زيمبابوي</option>
+    <option>زامبيا</option>
+    <option>أنغولا</option>
+    <option>الكاميرون</option>
+    <option>تشاد</option>
+    <option>النيجر</option>
+    <option>مالي</option>
+    <option>بوركينا فاسو</option>
 
-const select = document.getElementById("country");
+    <!-- آسيا -->
+    <option>الصين</option>
+    <option>اليابان</option>
+    <option>كوريا الجنوبية</option>
+    <option>الهند</option>
+    <option>باكستان</option>
+    <option>أفغانستان</option>
+    <option>بنغلاديش</option>
+    <option>نيبال</option>
+    <option>سريلانكا</option>
+    <option>إندونيسيا</option>
+    <option>ماليزيا</option>
+    <option>سنغافورة</option>
+    <option>تايلاند</option>
+    <option>فيتنام</option>
+    <option>الفلبين</option>
+    <option>تركيا</option>
+    <option>إيران</option>
 
-countries.sort().forEach(country => {
-  const option = document.createElement("option");
-  option.value = country;
-  option.textContent = country;
-  select.appendChild(option);
-});
+    <!-- أوروبا -->
+    <option>فرنسا</option>
+    <option>ألمانيا</option>
+    <option>إيطاليا</option>
+    <option>إسبانيا</option>
+    <option>البرتغال</option>
+    <option>المملكة المتحدة</option>
+    <option>إيرلندا</option>
+    <option>هولندا</option>
+    <option>بلجيكا</option>
+    <option>سويسرا</option>
+    <option>النمسا</option>
+    <option>السويد</option>
+    <option>النرويج</option>
+    <option>الدنمارك</option>
+    <option>فنلندا</option>
+    <option>بولندا</option>
+    <option>التشيك</option>
+    <option>رومانيا</option>
+    <option>اليونان</option>
+    <option>أوكرانيا</option>
+    <option>روسيا</option>
 
-function goNext() {
-  if (!select.value) {
-    alert("يرجى اختيار الدولة");
-    return;
-  }
-  localStorage.setItem("userCountry", select.value);
-  window.location.href = "home.html";
-}
-</script>
+    <!-- الأمريكتان -->
+    <option>الولايات المتحدة</option>
+    <option>كندا</option>
+    <option>المكسيك</option>
+    <option>البرازيل</option>
+    <option>الأرجنتين</option>
+    <option>تشيلي</option>
+    <option>كولومبيا</option>
+    <option>بيرو</option>
+    <option>فنزويلا</option>
+
+    <!-- أوقيانوسيا -->
+    <option>أستراليا</option>
+    <option>نيوزيلندا</option>
+    <option>بابوا غينيا الجديدة</option>
+
+  </select>
+
+  <br>
+  <button onclick="saveCountry()">متابعة</button>
+
+  <script>
+    function saveCountry() {
+      const country = document.getElementById("country").value;
+      if (!country) {
+        alert("الرجاء اختيار الدولة");
+        return;
+      }
+
+      localStorage.setItem("userCountry", country);
+      alert("تم اختيار: " + country);
+
+      // لاحقًا: الانتقال لصفحة عرض المنتجات
+      // window.location.href = "products.html";
+    }
+  </script>
 
 </body>
-  </html>
+</html>
