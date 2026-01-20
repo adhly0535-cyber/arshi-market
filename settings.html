@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>الإعدادات</title>
+
+<style>
+body{
+  margin:0;
+  font-family: Arial;
+  background:#f5f5f5;
+  direction: rtl;
+}
+
+.header{
+  background:#4CAF50;
+  color:#fff;
+  padding:12px;
+  text-align:center;
+  font-weight:bold;
+}
+
+.section{
+  background:#fff;
+  margin:10px;
+  border-radius:10px;
+  padding:12px;
+}
+
+.section h3{
+  margin:0 0 10px;
+  font-size:16px;
+}
+
+.item{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:10px 0;
+  border-bottom:1px solid #eee;
+  font-size:14px;
+}
+
+.item:last-child{
+  border-bottom:none;
+}
+
+button{
+  border:none;
+  background:#4CAF50;
+  color:#fff;
+  padding:6px 12px;
+  border-radius:20px;
+  cursor:pointer;
+  font-size:13px;
+}
+
+.switch{
+  transform: scale(1.2);
+}
+
+.logout{
+  background:#e53935;
+}
+
+.back{
+  margin:15px;
+  width:calc(100% - 30px);
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">⚙️ الإعدادات</div>
+
+<div class="section">
+  <h3>🌍 الدولة</h3>
+  <div class="item">
+    <span id="countryName">—</span>
+    <button onclick="changeCountry()">تغيير</button>
+  </div>
+</div>
+
+<div class="section">
+  <h3>🌐 اللغة</h3>
+  <div class="item">
+    <span>العربية</span>
+    <button>تغيير</button>
+  </div>
+</div>
+
+<div class="section">
+  <h3>🔔 الإشعارات</h3>
+  <div class="item">
+    <span>تفعيل الإشعارات</span>
+    <input type="checkbox" class="switch" checked>
+  </div>
+</div>
+
+<div class="section">
+  <h3>🚪 الحساب</h3>
+  <div class="item">
+    <span>تسجيل الخروج</span>
+    <button class="logout" onclick="logout()">خروج</button>
+  </div>
+</div>
+
+<button class="back" onclick="goHome()">⬅️ الرجوع للرئيسية</button>
+
+<script>
+const country = localStorage.getItem("country") || "غير محددة";
+document.getElementById("countryName").innerText = country;
+
+function changeCountry(){
+  localStorage.removeItem("country");
+  window.location.href = "country.html";
+}
+
+function logout(){
+  alert("سيتم تسجيل الخروج لاحقًا عبر Firebase");
+  // لاحقًا: Firebase signOut
+}
+
+function goHome(){
+  window.location.href = "products.html";
+}
+</script>
+
+</body>
+  </html>
