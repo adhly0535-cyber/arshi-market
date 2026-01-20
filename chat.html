@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>المراسلة</title>
+
+<style>
+body{
+  margin:0;
+  font-family: Arial;
+  background:#f2f2f2;
+  direction: rtl;
+  display:flex;
+  flex-direction:column;
+  height:100vh;
+}
+
+/* الهيدر */
+.header{
+  background:#4CAF50;
+  color:#fff;
+  padding:12px;
+  text-align:center;
+  font-weight:bold;
+}
+
+/* الرسائل */
+.chat-box{
+  flex:1;
+  padding:10px;
+  overflow-y:auto;
+}
+
+.message{
+  max-width:70%;
+  margin-bottom:10px;
+  padding:8px 12px;
+  border-radius:15px;
+  font-size:14px;
+  line-height:1.5;
+}
+
+.me{
+  background:#4CAF50;
+  color:#fff;
+  margin-left:auto;
+  border-bottom-right-radius:0;
+}
+
+.other{
+  background:#fff;
+  color:#000;
+  margin-right:auto;
+  border-bottom-left-radius:0;
+}
+
+/* الإدخال */
+.input-bar{
+  display:flex;
+  padding:8px;
+  background:#fff;
+  border-top:1px solid #ccc;
+}
+
+.input-bar input{
+  flex:1;
+  padding:10px;
+  border:1px solid #ccc;
+  border-radius:20px;
+  outline:none;
+}
+
+.input-bar button{
+  margin-right:8px;
+  background:#4CAF50;
+  color:#fff;
+  border:none;
+  padding:10px 16px;
+  border-radius:20px;
+  cursor:pointer;
+}
+
+/* زر الرجوع */
+.back{
+  background:#eee;
+  border:none;
+  padding:8px;
+  cursor:pointer;
+  font-size:14px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">💬 المراسلة</div>
+
+<div class="chat-box" id="chatBox">
+  <div class="message other">مرحبا، هل المنتج ما زال متوفر؟</div>
+  <div class="message me">نعم متوفر 👍</div>
+</div>
+
+<div class="input-bar">
+  <input type="text" id="msgInput" placeholder="اكتب رسالتك...">
+  <button onclick="sendMsg()">إرسال</button>
+</div>
+
+<button class="back" onclick="goBack()">⬅️ الرجوع</button>
+
+<script>
+function sendMsg(){
+  const input = document.getElementById("msgInput");
+  const text = input.value.trim();
+  if(!text) return;
+
+  const div = document.createElement("div");
+  div.className = "message me";
+  div.textContent = text;
+
+  document.getElementById("chatBox").appendChild(div);
+  input.value = "";
+  document.getElementById("chatBox").scrollTop = 9999;
+}
+
+function goBack(){
+  window.location.href = "products.html";
+}
+</script>
+
+</body>
+  </html>
