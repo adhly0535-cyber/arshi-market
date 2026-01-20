@@ -12,6 +12,14 @@ body{
   background:#f5f5f5;
 }
 
+.country-name{
+  background:#4CAF50;
+  color:#fff;
+  text-align:center;
+  padding:8px;
+  font-weight:bold;
+}
+
 /* التصنيفات */
 .categories{
   display:flex;
@@ -127,6 +135,8 @@ body{
 
 <body>
 
+<div class="country-name" id="countryName"></div>
+
 <div class="categories">
   <button onclick="selectCategory('سيارات')">🚗 سيارات</button>
   <button onclick="selectCategory('بيوت')">🏠 بيوت</button>
@@ -146,6 +156,8 @@ body{
 
 <script>
 let currentCategory = '';
+const userCountry = localStorage.getItem('country') || 'غير محددة';
+document.getElementById('countryName').innerText = '📍 الدولة: ' + userCountry;
 
 const products = [
 {
@@ -156,28 +168,27 @@ const products = [
   desc:'سيارة نظيفة استخدام شخصي',
   price:'10,000$',
   user:'Ahmed',
-  userImg:'https://via.placeholder.com/50',
+  userImg:'https://i.pravatar.cc/50?img=1',
   images:[
-    'https://picsum.photos/300?1',
-    'https://picsum.photos/300?2',
-    'https://picsum.photos/300?3',
-    'https://picsum.photos/300?4'
+    'https://source.unsplash.com/300x200/?car',
+    'https://source.unsplash.com/300x200/?toyota',
+    'https://source.unsplash.com/300x200/?vehicle',
+    'https://source.unsplash.com/300x200/?auto'
   ]
 },
 {
   category:'هواتف',
-  type:'آيفون 13',
+  type:'iPhone 13',
   condition:'جديد',
-  defects:'لا توجد',
   desc:'هاتف ممتاز مع جميع الملحقات',
   price:'800$',
   user:'Sara',
-  userImg:'https://via.placeholder.com/50',
+  userImg:'https://i.pravatar.cc/50?img=2',
   images:[
-    'https://picsum.photos/300?5',
-    'https://picsum.photos/300?6',
-    'https://picsum.photos/300?7',
-    'https://picsum.photos/300?8'
+    'https://source.unsplash.com/300x200/?iphone',
+    'https://source.unsplash.com/300x200/?smartphone',
+    'https://source.unsplash.com/300x200/?mobile',
+    'https://source.unsplash.com/300x200/?apple-phone'
   ]
 },
 {
@@ -189,12 +200,12 @@ const products = [
   desc:'منزل واسع وموقع ممتاز.\nتشطيب حديث وجاهز للسكن.',
   price:'45,000$',
   user:'Mohamed',
-  userImg:'https://via.placeholder.com/50',
+  userImg:'https://i.pravatar.cc/50?img=3',
   images:[
-    'https://picsum.photos/300?9',
-    'https://picsum.photos/300?10',
-    'https://picsum.photos/300?11',
-    'https://picsum.photos/300?12'
+    'https://source.unsplash.com/300x200/?house',
+    'https://source.unsplash.com/300x200/?home',
+    'https://source.unsplash.com/300x200/?villa',
+    'https://source.unsplash.com/300x200/?building'
   ]
 }
 ];
@@ -221,10 +232,13 @@ function displayProducts(list){
       ${p.category === 'بيوت' ? `
         <p><b>المنطقة:</b> ${p.area}</p>
         <p><b>نوع الأرض:</b> ${p.landType}</p>
-        <p><b>${p.deal}</b></p>
+        <p><b>الحالة:</b> ${p.built}</p>
+        <p><b>المعاملة:</b> ${p.deal}</p>
         <p>${p.desc.replace('\n','<br>')}</p>
       ` : `
-        <p><b>${p.type}</b></p>
+        <p><b>النوع:</b> ${p.type}</p>
+        <p><b>الحالة:</b> ${p.condition}</p>
+        ${p.defects ? `<p><b>العيوب:</b> ${p.defects}</p>` : ``}
         <p>${p.desc}</p>
       `}
 
