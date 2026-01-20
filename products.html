@@ -18,7 +18,7 @@ body{
   text-align:center;
   padding:8px;
   font-weight:bold;
-  cursor:pointer; /* إضافة */
+  cursor:pointer;
 }
 
 /* التصنيفات */
@@ -28,6 +28,7 @@ body{
   gap:8px;
   padding:10px;
   background:#fff;
+  overflow-x:auto;
 }
 
 .categories button{
@@ -36,6 +37,7 @@ body{
   padding:8px 14px;
   border-radius:20px;
   cursor:pointer;
+  white-space:nowrap;
 }
 
 #addBtn{
@@ -138,12 +140,20 @@ body{
 
 <div class="country-name" id="countryName"></div>
 
+<!-- التصنيفات -->
 <div class="categories">
   <button onclick="selectCategory('سيارات')">🚗 سيارات</button>
   <button onclick="selectCategory('بيوت')">🏠 بيوت</button>
   <button onclick="selectCategory('هواتف')">📱 هواتف</button>
   <button onclick="selectCategory('أخرى')">➕ أخرى</button>
   <button id="addBtn" onclick="goAddProduct()">➕ إضافة منتج</button>
+</div>
+
+<!-- ✅ شريط اختيار الولاية (جديد) -->
+<div class="categories" id="areasBar" style="display:none">
+  <button onclick="selectArea('الخرطوم')">📍 الخرطوم</button>
+  <button onclick="selectArea('أم درمان')">📍 أم درمان</button>
+  <button onclick="selectArea('بحري')">📍 بحري</button>
 </div>
 
 <div class="products" id="products"></div>
@@ -156,31 +166,25 @@ body{
 </div>
 
 <script>
-/* ===============================
-   إضافة 1️⃣: قراءة الدولة
-================================= */
+/* ===== الدولة ===== */
 const userCountry = localStorage.getItem('country');
-
 if(!userCountry){
   window.location.href = 'country.html';
 }
-
 document.getElementById('countryName').innerText = '📍 الدولة: ' + userCountry;
-
-// الرجوع لاختيار الدولة
 document.getElementById('countryName').onclick = () => {
   window.location.href = 'country.html';
 };
 
 let currentCategory = '';
+let currentArea = '';
 
-/* ===============================
-   المنتجات (أُضيف country فقط)
-================================= */
+/* ===== المنتجات ===== */
 const products = [
 {
-  country:'السودان', // إضافة
+  country:'السودان',
   category:'سيارات',
+  area:'بحري',
   type:'تويوتا',
   condition:'مستعمل',
   defects:'خدش بسيط',
@@ -196,8 +200,9 @@ const products = [
   ]
 },
 {
-  country:'مصر', // إضافة
+  country:'مصر',
   category:'هواتف',
+  area:'القاهرة',
   type:'iPhone 13',
   condition:'جديد',
   desc:'هاتف ممتاز مع جميع الملحقات',
@@ -212,7 +217,7 @@ const products = [
   ]
 },
 {
-  country:'السودان', // إضافة
+  country:'السودان',
   category:'بيوت',
   area:'الخرطوم',
   landType:'سكني',
@@ -231,25 +236,29 @@ const products = [
 }
 ];
 
-/* ===============================
-   إضافة 2️⃣: فلترة حسب الدولة
-================================= */
-const countryProducts = products.filter(
-  p => p.country === userCountry
-);
+const countryProducts = products.filter(p => p.country === userCountry);
 
 function selectCategory(cat){
   currentCategory = cat;
+  currentArea = '';
   document.getElementById('addBtn').style.display='inline-block';
-  displayProducts(countryProducts.filter(p => p.category === cat));
+  document.getElementById('areasBar').style.display='flex';
+  document.getElementById('products').innerHTML = '<p>اختر الولاية</p>';
+}
+
+function selectArea(area){
+  currentArea = area;
+  const filtered = countryProducts.filter(p =>
+    p.category === currentCategory && p.area === currentArea
+  );
+  displayProducts(filtered);
 }
 
 function displayProducts(list){
   const div = document.getElementById('products');
   div.innerHTML = '';
-
   if(list.length === 0){
-    div.innerHTML = '<p>لا توجد منتجات في هذه الدولة</p>';
+    div.innerHTML = '<p>لا توجد منتجات في هذه الولاية</p>';
     return;
   }
 
@@ -257,7 +266,6 @@ function displayProducts(list){
     div.innerHTML += `
     <div class="product-card">
       <img class="main-img" id="main${i}" src="${p.images[0]}">
-
       <div class="thumbs">
         ${p.images.map(img=>`<img src="${img}" onclick="changeImg('${img}','main${i}')">`).join('')}
       </div>
@@ -276,7 +284,6 @@ function displayProducts(list){
       `}
 
       <b>${p.price}</b>
-
       <div class="user-bar">
         <div class="user">
           <img src="${p.userImg}">
@@ -292,9 +299,8 @@ function changeImg(img,id){ document.getElementById(id).src = img; }
 function goAddProduct(){ window.location.href='add-product.html?cat='+currentCategory; }
 function go(page){ window.location.href=page; }
 
-// عرض منتجات الدولة عند الدخول
 displayProducts(countryProducts);
 </script>
 
 </body>
-</html>
+</html> 
