@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>إضافة منتج</title>
+
+<style>
+body{
+  font-family:Arial;
+  background:#f5f5f5;
+  margin:0;
+  padding:10px;
+}
+
+h2{text-align:center}
+
+form{
+  background:#fff;
+  padding:15px;
+  border-radius:10px;
+}
+
+input, select, textarea, button{
+  width:100%;
+  padding:10px;
+  margin-bottom:10px;
+  border-radius:8px;
+  border:1px solid #ccc;
+}
+
+.hidden{display:none}
+
+button{
+  background:#4CAF50;
+  color:#fff;
+  border:none;
+  font-size:16px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>➕ إضافة منتج</h2>
+
+<form id="productForm">
+
+  <!-- عام -->
+  <input id="title" placeholder="اسم المنتج / العنوان" required>
+  <input id="price" placeholder="السعر" required>
+
+  <!-- سيارات وهواتف -->
+  <div id="normalFields">
+    <select id="condition">
+      <option value="">الحالة</option>
+      <option>جديد</option>
+      <option>مستعمل</option>
+    </select>
+    <input id="defects" placeholder="العيوب (إن وجدت)">
+  </div>
+
+  <!-- بيوت -->
+  <div id="houseFields" class="hidden">
+    <input id="area" placeholder="المنطقة">
+    <input id="landType" placeholder="نوع الأرض (سكني / تجاري)">
+    <select id="built">
+      <option>مبني جاهز</option>
+      <option>أرض فقط</option>
+    </select>
+    <select id="deal">
+      <option>بيع</option>
+      <option>إيجار</option>
+    </select>
+  </div>
+
+  <textarea id="desc" placeholder="وصف المنتج (سطرين على الأقل)" required></textarea>
+
+  <button type="submit">نشر المنتج</button>
+</form>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const category = params.get('cat');
+const country = localStorage.getItem('country') || 'غير محددة';
+
+if(category === 'بيوت'){
+  document.getElementById('houseFields').classList.remove('hidden');
+  document.getElementById('normalFields').classList.add('hidden');
+}
+
+document.getElementById('productForm').onsubmit = function(e){
+  e.preventDefault();
+
+  let product = {
+    category,
+    country,
+    title: title.value,
+    price: price.value,
+    desc: desc.value,
+    user: 'أنت',
+    userImg:'https://i.pravatar.cc/50',
+    images:[
+      'https://source.unsplash.com/300x200/?house',
+      'https://source.unsplash.com/300x200/?home'
+    ]
+  };
+
+  if(category === 'بيوت'){
+    product.area = area.value;
+    product.landType = landType.value;
+    product.built = built.value;
+    product.deal = deal.value;
+  }else{
+    product.condition = condition.value;
+    product.defects = defects.value;
+  }
+
+  let products = JSON.parse(localStorage.getItem('products')) || [];
+  products.push(product);
+  localStorage.setItem('products', JSON.stringify(products));
+
+  alert('✅ تم نشر المنتج');
+  window.location.href = 'products.html';
+};
+</script>
+
+</body>
+</html>
