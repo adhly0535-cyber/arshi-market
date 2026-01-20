@@ -18,6 +18,7 @@ body{
   text-align:center;
   padding:8px;
   font-weight:bold;
+  cursor:pointer; /* إضافة */
 }
 
 /* التصنيفات */
@@ -155,12 +156,30 @@ body{
 </div>
 
 <script>
-let currentCategory = '';
-const userCountry = localStorage.getItem('country') || 'غير محددة';
+/* ===============================
+   إضافة 1️⃣: قراءة الدولة
+================================= */
+const userCountry = localStorage.getItem('country');
+
+if(!userCountry){
+  window.location.href = 'country.html';
+}
+
 document.getElementById('countryName').innerText = '📍 الدولة: ' + userCountry;
 
+// الرجوع لاختيار الدولة
+document.getElementById('countryName').onclick = () => {
+  window.location.href = 'country.html';
+};
+
+let currentCategory = '';
+
+/* ===============================
+   المنتجات (أُضيف country فقط)
+================================= */
 const products = [
 {
+  country:'السودان', // إضافة
   category:'سيارات',
   type:'تويوتا',
   condition:'مستعمل',
@@ -177,6 +196,7 @@ const products = [
   ]
 },
 {
+  country:'مصر', // إضافة
   category:'هواتف',
   type:'iPhone 13',
   condition:'جديد',
@@ -192,6 +212,7 @@ const products = [
   ]
 },
 {
+  country:'السودان', // إضافة
   category:'بيوت',
   area:'الخرطوم',
   landType:'سكني',
@@ -210,15 +231,27 @@ const products = [
 }
 ];
 
+/* ===============================
+   إضافة 2️⃣: فلترة حسب الدولة
+================================= */
+const countryProducts = products.filter(
+  p => p.country === userCountry
+);
+
 function selectCategory(cat){
   currentCategory = cat;
   document.getElementById('addBtn').style.display='inline-block';
-  displayProducts(products.filter(p => p.category === cat));
+  displayProducts(countryProducts.filter(p => p.category === cat));
 }
 
 function displayProducts(list){
   const div = document.getElementById('products');
   div.innerHTML = '';
+
+  if(list.length === 0){
+    div.innerHTML = '<p>لا توجد منتجات في هذه الدولة</p>';
+    return;
+  }
 
   list.forEach((p,i)=>{
     div.innerHTML += `
@@ -259,7 +292,8 @@ function changeImg(img,id){ document.getElementById(id).src = img; }
 function goAddProduct(){ window.location.href='add-product.html?cat='+currentCategory; }
 function go(page){ window.location.href=page; }
 
-displayProducts(products);
+// عرض منتجات الدولة عند الدخول
+displayProducts(countryProducts);
 </script>
 
 </body>
