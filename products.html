@@ -234,7 +234,7 @@ function displayProducts(list){
         <p><b>نوع الأرض:</b> ${p.landType}</p>
         <p><b>الحالة:</b> ${p.built}</p>
         <p><b>المعاملة:</b> ${p.deal}</p>
-        <p>${p.desc.replace('\n','<br>')}</p>
+        <p>${p.desc.replaceAll('\n','<br>')}</p>
       ` : `
         <p><b>النوع:</b> ${p.type}</p>
         <p><b>الحالة:</b> ${p.condition}</p>
