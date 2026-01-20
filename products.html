@@ -3,71 +3,115 @@
 <head>
 <meta charset="UTF-8">
 <title>Arshi Market</title>
+
 <style>
-body {
+body{
   font-family: Arial;
-  margin: 0;
-  padding-bottom: 60px;
-  background: #f5f5f5;
+  margin:0;
+  padding-bottom:70px;
+  background:#f5f5f5;
 }
 
 /* التصنيفات */
-.categories {
-  display: flex;
-  align-items: center;
-  background: #fff;
-  padding: 10px;
-  gap: 10px;
+.categories{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:10px;
+  background:#fff;
 }
 
-.categories button {
-  border: none;
-  background: #eee;
-  padding: 8px 14px;
-  border-radius: 20px;
-  cursor: pointer;
+.categories button{
+  border:none;
+  background:#eee;
+  padding:8px 14px;
+  border-radius:20px;
+  cursor:pointer;
 }
 
-#addBtn {
-  display: none;
-  background: #4CAF50;
-  color: #fff;
+#addBtn{
+  display:none;
+  background:#4CAF50;
+  color:#fff;
 }
 
 /* المنتجات */
-.products {
-  padding: 10px;
+.products{
+  padding:10px;
 }
 
-.product {
-  background: #fff;
-  margin-bottom: 10px;
-  padding: 10px;
-  border-radius: 8px;
+.product-card{
+  background:#fff;
+  padding:10px;
+  margin-bottom:15px;
+  border-radius:10px;
 }
 
-.product img {
-  width: 100%;
-  border-radius: 6px;
+/* الصور */
+.main-img{
+  width:100%;
+  border-radius:8px;
+  margin-bottom:6px;
+}
+
+.thumbs{
+  display:flex;
+  gap:5px;
+  margin-bottom:8px;
+}
+
+.thumbs img{
+  width:23%;
+  border-radius:6px;
+  cursor:pointer;
+}
+
+/* معلومات المستخدم */
+.user-bar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-top:10px;
+}
+
+.user{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.user img{
+  width:36px;
+  height:36px;
+  border-radius:50%;
+}
+
+.chat-btn{
+  background:#4CAF50;
+  color:#fff;
+  border:none;
+  padding:6px 14px;
+  border-radius:20px;
+  cursor:pointer;
 }
 
 /* الشريط السفلي */
-.bottom-nav {
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-  background: #fff;
-  display: flex;
-  justify-content: space-around;
-  padding: 10px 0;
-  border-top: 1px solid #ccc;
+.bottom-nav{
+  position:fixed;
+  bottom:0;
+  width:100%;
+  background:#fff;
+  display:flex;
+  justify-content:space-around;
+  padding:10px 0;
+  border-top:1px solid #ccc;
 }
 
-.bottom-nav button {
-  background: none;
-  border: none;
-  font-size: 14px;
-  cursor: pointer;
+.bottom-nav button{
+  background:none;
+  border:none;
+  font-size:14px;
+  cursor:pointer;
 }
 </style>
 </head>
@@ -99,35 +143,72 @@ body {
 let currentCategory = '';
 
 const products = [
-  {name:'تويوتا', category:'سيارات', img:'https://via.placeholder.com/300'},
-  {name:'شقة للبيع', category:'بيوت', img:'https://via.placeholder.com/300'},
-  {name:'آيفون', category:'هواتف', img:'https://via.placeholder.com/300'}
+{
+  category:'سيارات',
+  type:'تويوتا',
+  condition:'مستعمل',
+  defects:'خدش بسيط',
+  desc:'سيارة نظيفة استخدام شخصي',
+  price:'10,000$',
+  user:'Ahmed',
+  userImg:'https://via.placeholder.com/50',
+  images:[
+    'https://via.placeholder.com/400',
+    'https://via.placeholder.com/401',
+    'https://via.placeholder.com/402',
+    'https://via.placeholder.com/403'
+  ]
+}
 ];
 
-function selectCategory(cat) {
+function selectCategory(cat){
   currentCategory = cat;
-  document.getElementById('addBtn').style.display = 'inline-block';
+  document.getElementById('addBtn').style.display='inline-block';
   displayProducts(products.filter(p => p.category === cat));
 }
 
-function displayProducts(list) {
+function displayProducts(list){
   const div = document.getElementById('products');
   div.innerHTML = '';
-  list.forEach(p => {
+
+  list.forEach((p,i)=>{
     div.innerHTML += `
-      <div class="product">
-        <img src="${p.img}">
-        <h3>${p.name}</h3>
+    <div class="product-card">
+      <img class="main-img" id="main${i}" src="${p.images[0]}">
+
+      <div class="thumbs">
+        ${p.images.map(img =>
+          `<img src="${img}" onclick="changeImg('${img}','main${i}')">`
+        ).join('')}
       </div>
+
+      <p><b>النوع:</b> ${p.type}</p>
+      <p><b>الحالة:</b> ${p.condition}</p>
+      <p><b>العيوب:</b> ${p.defects || 'لا توجد'}</p>
+      <p>${p.desc}</p>
+      <h3>${p.price}</h3>
+
+      <div class="user-bar">
+        <div class="user">
+          <img src="${p.userImg}">
+          <span>${p.user}</span>
+        </div>
+        <button class="chat-btn" onclick="go('chat.html')">مراسلة</button>
+      </div>
+    </div>
     `;
   });
 }
 
-function goAddProduct() {
+function changeImg(img,id){
+  document.getElementById(id).src = img;
+}
+
+function goAddProduct(){
   window.location.href = 'add-product.html?cat=' + currentCategory;
 }
 
-function go(page) {
+function go(page){
   window.location.href = page;
 }
 </script>
