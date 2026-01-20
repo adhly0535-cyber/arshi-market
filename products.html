@@ -1,63 +1,135 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-  <meta charset="UTF-8">
-  <title>المنتجات المتاحة</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-    }
-    ul {
-      list-style: none;
-      padding: 0;
-    }
-    li {
-      padding: 10px;
-      margin: 8px 0;
-      background: #f2f2f2;
-      cursor: pointer;
-    }
-    .product {
-      margin-top: 15px;
-      padding: 10px;
-      border: 1px solid #ddd;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Arshi Market - المنتجات</title>
+<style>
+body {
+  font-family: Arial;
+  margin: 0;
+  background: #f5f5f5;
+}
+
+/* التصنيفات */
+.categories {
+  display: flex;
+  justify-content: space-around;
+  background: #fff;
+  padding: 10px;
+}
+
+.categories button {
+  border: none;
+  background: none;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+/* المناطق */
+.locations {
+  display: flex;
+  overflow-x: auto;
+  padding: 10px;
+  background: #eee;
+}
+
+.locations button {
+  margin-left: 10px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+/* المنتجات */
+.products {
+  padding: 10px;
+}
+
+.product {
+  background: #fff;
+  margin-bottom: 10px;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.product img {
+  width: 100%;
+  border-radius: 6px;
+}
+
+/* الشريط السفلي */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background: #fff;
+  display: flex;
+  justify-content: space-around;
+  padding: 8px 0;
+  border-top: 1px solid #ccc;
+}
+</style>
 </head>
+
 <body>
 
-  <h2>🛒 المنتجات المتاحة</h2>
+<!-- التصنيفات -->
+<div class="categories">
+  <button onclick="changeCategory('cars')">🚗 سيارات</button>
+  <button>🏠 بيوت</button>
+  <button>📱 هواتف</button>
+  <button>➕ أخرى</button>
+</div>
 
-  <p id="countryText"></p>
+<!-- المناطق -->
+<div class="locations">
+  <button onclick="filterLocation('الخرطوم')">الخرطوم</button>
+  <button onclick="filterLocation('بحري')">بحري</button>
+  <button onclick="filterLocation('أم درمان')">أم درمان</button>
+  <button onclick="filterLocation('بورتسودان')">بورتسودان</button>
+</div>
 
-  <ul>
-    <li onclick="showProducts('car')">🚗 سيارات</li>
-    <li onclick="showProducts('house')">🏠 منازل</li>
-     <li onclick="showProducts('phone')">📱 هواتف</li>
-    <li onclick="showProducts('laptop')">💻 لابتوبات</li>
-  </ul>
+<!-- المنتجات -->
+<div class="products" id="products"></div>
 
-  <div id="products"></div>
+<!-- الشريط السفلي -->
+<div class="bottom-nav">
+  🏠
+  📂
+  ➕
+  ❤️
+  ⚙️
+</div>
 
-  <script>
-    const country = localStorage.getItem("userCountry");
-    document.getElementById("countryText").innerText =
-      "الدولة المختارة: " + (country || "غير محددة");
+<script>
+const allProducts = [
+  {name:'تويوتا', price:'10,000$', location:'الخرطوم', img:'https://via.placeholder.com/300'},
+  {name:'نيسان', price:'8,000$', location:'بحري', img:'https://via.placeholder.com/300'},
+  {name:'هيونداي', price:'9,500$', location:'أم درمان', img:'https://via.placeholder.com/300'}
+];
 
-    function showProducts(type) {
-      const box = document.getElementById("products");
+function displayProducts(list) {
+  const div = document.getElementById('products');
+  div.innerHTML = '';
+  list.forEach(p => {
+    div.innerHTML += `
+      <div class="product">
+        <img src="${p.img}">
+        <h3>${p.name}</h3>
+        <p>${p.price}</p>
+        <small>${p.location}</small>
+      </div>
+    `;
+  });
+}
 
-      box.innerHTML = `
-        <div class="product">
-          <strong>منتج تجريبي</strong><br>
-          النوع: ${type}<br>
-          الدولة: ${country}<br>
-          السعر: سيتم إضافته لاحقًا
-        </div>
-      `;
-    }
-  </script>
+function filterLocation(loc) {
+  displayProducts(allProducts.filter(p => p.location === loc));
+}
+
+displayProducts(allProducts);
+</script>
 
 </body>
 </html>
