@@ -31,6 +31,7 @@ button{
   border:none;
   font-size:16px;
 }
+small{color:#666}
 </style>
 </head>
 
@@ -43,14 +44,18 @@ button{
   <input id="title" placeholder="اسم المنتج / العنوان" required>
   <input id="price" placeholder="السعر" required>
 
+  <!-- 🖼️ صور المنتج (حد أقصى 5) -->
+  <input type="file" id="imagesInput" accept="image/*" multiple>
+  <small>يمكنك إضافة حتى 5 صور فقط</small>
+
   <!-- 🌍 اختيار الدولة -->
   <select id="countrySelect" required>
-    <option>جاري تحميل الدول...</option>
+    <option value="">جاري تحميل الدول...</option>
   </select>
 
   <!-- 📍 اختيار الولاية -->
-  <select id="stateSelect" required>
-    <option>اختر الدولة أولاً</option>
+  <select id="stateSelect" required disabled>
+    <option value="">اختر الدولة</option>
   </select>
 
   <div id="normalFields">
@@ -85,6 +90,8 @@ button{
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL }
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 /* إعدادات Firebase */
 const firebaseConfig = {
@@ -100,6 +107,16 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const storage = getStorage(app);
+
+/* ===== الصور ===== */
+const imagesInput = document.getElementById("imagesInput");
+imagesInput.addEventListener("change", ()=>{
+  if(imagesInput.files.length > 5){
+    alert("❌ الحد الأقصى 5 صور فقط");
+    imagesInput.value = "";
+  }
+});
 
 /* ===== جلب الدول ===== */
 const countrySelect = document.getElementById("countrySelect");
@@ -109,19 +126,19 @@ fetch("https://restcountries.com/v3.1/all")
 .then(res => res.json())
 .then(data => {
   countrySelect.innerHTML = '<option value="">اختر الدولة</option>';
-  data
-    .sort((a,b)=>a.name.common.localeCompare(b.name.common))
-    .forEach(c=>{
-      const opt=document.createElement("option");
-      opt.value=c.name.common;
-      opt.textContent=c.name.common;
-      countrySelect.appendChild(opt);
-    });
+  data.sort((a,b)=>a.name.common.localeCompare(b.name.common))
+  .forEach(c=>{
+    const opt=document.createElement("option");
+    opt.value=c.name.common;
+    opt.textContent=c.name.common;
+    countrySelect.appendChild(opt);
+  });
 });
 
 /* ===== جلب الولايات ===== */
 countrySelect.addEventListener("change", ()=>{
   const country = countrySelect.value;
+  stateSelect.disabled = true;
   stateSelect.innerHTML = "<option>جاري تحميل الولايات...</option>";
 
   fetch("https://countriesnow.space/api/v0.1/countries/states",{
@@ -136,6 +153,7 @@ countrySelect.addEventListener("change", ()=>{
       stateSelect.innerHTML="<option>لا توجد ولايات</option>";
       return;
     }
+    stateSelect.disabled=false;
     data.data.states.forEach(s=>{
       const opt=document.createElement("option");
       opt.value=s.name;
@@ -164,6 +182,17 @@ productForm.onsubmit = async function(e){
     return;
   }
 
+  let imageUrls = [];
+  const files = imagesInput.files;
+
+  for(let i=0;i<files.length;i++){
+    const file = files[i];
+    const imgRef = ref(storage, `products/${user.uid}/${Date.now()}_${file.name}`);
+    await uploadBytes(imgRef, file);
+    const url = await getDownloadURL(imgRef);
+    imageUrls.push(url);
+  }
+
   let product = {
     title: title.value,
     price: price.value,
@@ -175,7 +204,7 @@ productForm.onsubmit = async function(e){
     userName: user.displayName,
     userImg: user.photoURL,
     createdAt: serverTimestamp(),
-    images:['https://source.unsplash.com/300x200/?product']
+    images: imageUrls
   };
 
   if(category === 'بيوت'){
@@ -200,4 +229,4 @@ productForm.onsubmit = async function(e){
 </script>
 
 </body>
-</html>
+  </html>
