@@ -49,6 +49,13 @@ small{color:#666}
 
   <input id="stateInput" placeholder="الولاية / المدينة" required>
 
+  <select id="categorySelect" required>
+    <option value="">اختر نوع المنتج</option>
+    <option value="بيوت">🏠 منزل / بيت</option>
+    <option value="سيارات">🚗 سيارة</option>
+    <option value="هواتف">📱 هاتف</option>
+  </select>
+
   <div id="normalFields">
     <select id="condition">
       <option value="">الحالة</option>
@@ -97,11 +104,7 @@ const db = getFirestore(app);
 const storage = getStorage(app);
 
 let currentUser = null;
-
-/* ✅ ننتظر تسجيل الدخول */
-onAuthStateChanged(auth, (user)=>{
-  currentUser = user;
-});
+onAuthStateChanged(auth, (user)=> currentUser = user);
 
 /* ===== العناصر ===== */
 const productForm = document.getElementById("productForm");
@@ -110,6 +113,21 @@ const price = document.getElementById("price");
 const desc = document.getElementById("desc");
 const stateInput = document.getElementById("stateInput");
 const imagesInput = document.getElementById("imagesInput");
+const categorySelect = document.getElementById("categorySelect");
+
+const normalFields = document.getElementById("normalFields");
+const houseFields = document.getElementById("houseFields");
+
+/* ===== إظهار الحقول حسب النوع ===== */
+categorySelect.addEventListener("change", ()=>{
+  if(categorySelect.value === "بيوت"){
+    houseFields.classList.remove("hidden");
+    normalFields.classList.add("hidden");
+  }else{
+    houseFields.classList.add("hidden");
+    normalFields.classList.remove("hidden");
+  }
+});
 
 /* ===== النشر ===== */
 productForm.addEventListener("submit", async (e)=>{
@@ -120,7 +138,7 @@ productForm.addEventListener("submit", async (e)=>{
     return;
   }
 
-  if(!title.value || !price.value || !stateInput.value || !desc.value){
+  if(!title.value || !price.value || !stateInput.value || !desc.value || !categorySelect.value){
     alert("❌ يرجى ملء جميع الحقول");
     return;
   }
@@ -135,23 +153,26 @@ productForm.addEventListener("submit", async (e)=>{
   for(const file of imagesInput.files){
     const imgRef = ref(storage, `products/${currentUser.uid}/${Date.now()}_${file.name}`);
     await uploadBytes(imgRef, file);
-    const url = await getDownloadURL(imgRef);
-    imageUrls.push(url);
+    imageUrls.push(await getDownloadURL(imgRef));
   }
 
-  const docRef = await addDoc(collection(db,"products"), {
+  await addDoc(collection(db,"products"), {
     title: title.value,
     price: price.value,
     desc: desc.value,
     country,
     state: stateInput.value,
+    category: categorySelect.value,
     userId: currentUser.uid,
     createdAt: serverTimestamp(),
     images: imageUrls
   });
 
-  alert("✅ تم نشر المنتج");
-  window.location.href = `product.html?id=${docRef.id}`;
+  alert("✅ تم نشر المنتج بنجاح");
+  window.location.href = "products.html";
+});
 </script>
+
 </body>
 </html>
+  
