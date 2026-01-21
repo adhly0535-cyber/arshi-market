@@ -17,7 +17,7 @@ form{
   padding:15px;
   border-radius:10px;
 }
-input, select, textarea, button{
+input, textarea, button, select{
   width:100%;
   padding:10px;
   margin-bottom:10px;
@@ -48,10 +48,8 @@ small{color:#666}
   <input type="file" id="imagesInput" accept="image/*" multiple>
   <small>يمكنك إضافة حتى 5 صور فقط</small>
 
-  <!-- 📍 اختيار الولاية -->
-  <select id="stateSelect" required>
-    <option value="">جاري تحميل الولايات...</option>
-  </select>
+  <!-- 📍 الولاية / المدينة (يكتبها المستخدم) -->
+  <input id="stateInput" placeholder="الولاية / المدينة" required>
 
   <div id="normalFields">
     <select id="condition">
@@ -63,7 +61,7 @@ small{color:#666}
   </div>
 
   <div id="houseFields" class="hidden">
-    <input id="area" placeholder="المنطقة">
+    <input id="area" placeholder="المنطقة / الحي">
     <input id="landType" placeholder="نوع الأرض (سكني / تجاري)">
     <select id="built">
       <option>مبني جاهز</option>
@@ -80,14 +78,14 @@ small{color:#666}
   <button type="submit">نشر المنتج</button>
 </form>
 
+<!-- 🔥 Firebase -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getStorage, ref, uploadBytes, getDownloadURL } 
+import { getStorage, ref, uploadBytes, getDownloadURL }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
-/* Firebase */
 const firebaseConfig = {
   apiKey: "AIzaSyD3hAvhSDs-lX7ORCOR0DODT3l_S_gJA2o",
   authDomain: "arshi-market.firebaseapp.com",
@@ -102,93 +100,75 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-/* الصور */
+/* ===== الصور ===== */
+const imagesInput = document.getElementById("imagesInput");
 imagesInput.addEventListener("change", ()=>{
   if(imagesInput.files.length > 5){
     alert("❌ الحد الأقصى 5 صور فقط");
-    imagesInput.value="";
+    imagesInput.value = "";
   }
 });
 
-/* 🌍 الدولة من التخزين */
-const country = localStorage.getItem("country");
-const stateSelect = document.getElementById("stateSelect");
+/* ===== التصنيف ===== */
+const params = new URLSearchParams(window.location.search);
+const category = params.get("cat");
 
-if(!country){
-  alert("❌ لم يتم تحديد الدولة");
-  window.location.href="country.html";
-}
-
-/* 📍 جلب الولايات */
-fetch("https://countriesnow.space/api/v0.1/countries/states",{
-  method:"POST",
-  headers:{ "Content-Type":"application/json" },
-  body:JSON.stringify({ country })
-})
-.then(res=>res.json())
-.then(data=>{
-  stateSelect.innerHTML='<option value="">اختر الولاية</option>';
-  if(!data.data || !data.data.states.length){
-    stateSelect.innerHTML='<option>لا توجد ولايات</option>';
-    return;
-  }
-  data.data.states.forEach(s=>{
-    const opt=document.createElement("option");
-    opt.value=s.name;
-    opt.textContent=s.name;
-    stateSelect.appendChild(opt);
-  });
-});
-
-/* التصنيف */
-const params=new URLSearchParams(location.search);
-const category=params.get("cat");
-
-if(category==="بيوت"){
+if(category === "بيوت"){
   houseFields.classList.remove("hidden");
   normalFields.classList.add("hidden");
 }
 
-/* النشر */
-productForm.onsubmit=async(e)=>{
+/* ===== النشر ===== */
+productForm.onsubmit = async function(e){
   e.preventDefault();
-  const user=auth.currentUser;
-  if(!user){ alert("سجل الدخول أولاً"); return; }
 
-  let imageUrls=[];
-  for(const file of imagesInput.files){
-    const imgRef=ref(storage,`products/${user.uid}/${Date.now()}_${file.name}`);
-    await uploadBytes(imgRef,file);
-    imageUrls.push(await getDownloadURL(imgRef));
+  const user = auth.currentUser;
+  if(!user){
+    alert("يجب تسجيل الدخول أولاً");
+    return;
   }
 
-  const product={
-    title:title.value,
-    price:price.value,
-    desc:desc.value,
+  const country = localStorage.getItem("country");
+  if(!country){
+    alert("❌ لم يتم اختيار الدولة");
+    return;
+  }
+
+  let imageUrls = [];
+  for(const file of imagesInput.files){
+    const imgRef = ref(storage, `products/${user.uid}/${Date.now()}_${file.name}`);
+    await uploadBytes(imgRef, file);
+    const url = await getDownloadURL(imgRef);
+    imageUrls.push(url);
+  }
+
+  let product = {
+    title: title.value,
+    price: price.value,
+    desc: desc.value,
     category,
     country,
-    state:stateSelect.value,
-    userId:user.uid,
-    userName:user.displayName,
-    userImg:user.photoURL,
-    images:imageUrls,
-    createdAt:serverTimestamp()
+    state: stateInput.value.trim(),
+    userId: user.uid,
+    userName: user.displayName,
+    userImg: user.photoURL,
+    images: imageUrls,
+    createdAt: serverTimestamp()
   };
 
-  if(category==="بيوت"){
-    product.area=area.value;
-    product.landType=landType.value;
-    product.built=built.value;
-    product.deal=deal.value;
+  if(category === "بيوت"){
+    product.area = area.value;
+    product.landType = landType.value;
+    product.built = built.value;
+    product.deal = deal.value;
   }else{
-    product.condition=condition.value;
-    product.defects=defects.value;
+    product.condition = condition.value;
+    product.defects = defects.value;
   }
 
-  await addDoc(collection(db,"products"),product);
+  await addDoc(collection(db,"products"), product);
   alert("✅ تم نشر المنتج");
-  location.href="products.html";
+  window.location.href = "products.html";
 };
 </script>
 
