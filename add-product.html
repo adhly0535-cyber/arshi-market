@@ -39,7 +39,8 @@ small{color:#666}
 
 <h2>➕ إضافة منتج</h2>
 
-<form id="productForm">
+<!-- ✅ تم تعطيل تحقق المتصفح -->
+<form id="productForm" novalidate>
 
   <input id="title" placeholder="اسم المنتج / العنوان" required>
   <input id="price" placeholder="السعر" required>
@@ -96,7 +97,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-/* ===== تعريف العناصر ===== */
+/* ===== العناصر ===== */
 const productForm = document.getElementById("productForm");
 const title = document.getElementById("title");
 const price = document.getElementById("price");
@@ -135,6 +136,11 @@ if(category === "بيوت"){
 /* ===== النشر ===== */
 productForm.addEventListener("submit", async (e)=>{
   e.preventDefault();
+
+  if(!title.value || !price.value || !stateInput.value || !desc.value){
+    alert("❌ يرجى ملء جميع الحقول المطلوبة");
+    return;
+  }
 
   const user = auth.currentUser;
   if(!user){
@@ -180,7 +186,6 @@ productForm.addEventListener("submit", async (e)=>{
     product.defects = defects.value;
   }
 
-  /* ===== الإضافة الجديدة (عدم حذف أي شيء) ===== */
   const docRef = await addDoc(collection(db,"products"), product);
 
   alert("✅ تم نشر المنتج");
@@ -190,4 +195,3 @@ productForm.addEventListener("submit", async (e)=>{
 
 </body>
 </html>
-  
