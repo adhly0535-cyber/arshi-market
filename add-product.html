@@ -39,7 +39,6 @@ small{color:#666}
 
 <h2>➕ إضافة منتج</h2>
 
-<!-- ✅ تم تعطيل تحقق المتصفح -->
 <form id="productForm" novalidate>
 
   <input id="title" placeholder="اسم المنتج / العنوان" required>
@@ -61,7 +60,7 @@ small{color:#666}
 
   <div id="houseFields" class="hidden">
     <input id="area" placeholder="المنطقة / الحي">
-    <input id="landType" placeholder="نوع الأرض (سكني / تجاري)">
+    <input id="landType" placeholder="نوع الأرض">
     <select id="built">
       <option>مبني جاهز</option>
       <option>أرض فقط</option>
@@ -72,14 +71,14 @@ small{color:#666}
     </select>
   </div>
 
-  <textarea id="desc" placeholder="وصف المنتج (سطرين على الأقل)" required></textarea>
+  <textarea id="desc" placeholder="وصف المنتج" required></textarea>
 
   <button type="submit">نشر المنتج</button>
 </form>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
@@ -97,6 +96,13 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
+let currentUser = null;
+
+/* ✅ ننتظر تسجيل الدخول */
+onAuthStateChanged(auth, (user)=>{
+  currentUser = user;
+});
+
 /* ===== العناصر ===== */
 const productForm = document.getElementById("productForm");
 const title = document.getElementById("title");
@@ -105,46 +111,17 @@ const desc = document.getElementById("desc");
 const stateInput = document.getElementById("stateInput");
 const imagesInput = document.getElementById("imagesInput");
 
-const normalFields = document.getElementById("normalFields");
-const houseFields = document.getElementById("houseFields");
-
-const condition = document.getElementById("condition");
-const defects = document.getElementById("defects");
-
-const area = document.getElementById("area");
-const landType = document.getElementById("landType");
-const built = document.getElementById("built");
-const deal = document.getElementById("deal");
-
-/* ===== الصور ===== */
-imagesInput.addEventListener("change", ()=>{
-  if(imagesInput.files.length > 5){
-    alert("❌ الحد الأقصى 5 صور فقط");
-    imagesInput.value = "";
-  }
-});
-
-/* ===== التصنيف ===== */
-const params = new URLSearchParams(window.location.search);
-const category = params.get("cat");
-
-if(category === "بيوت"){
-  houseFields.classList.remove("hidden");
-  normalFields.classList.add("hidden");
-}
-
 /* ===== النشر ===== */
 productForm.addEventListener("submit", async (e)=>{
   e.preventDefault();
 
-  if(!title.value || !price.value || !stateInput.value || !desc.value){
-    alert("❌ يرجى ملء جميع الحقول المطلوبة");
+  if(!currentUser){
+    alert("❌ يجب تسجيل الدخول أولاً");
     return;
   }
 
-  const user = auth.currentUser;
-  if(!user){
-    alert("يجب تسجيل الدخول أولاً");
+  if(!title.value || !price.value || !stateInput.value || !desc.value){
+    alert("❌ يرجى ملء جميع الحقول");
     return;
   }
 
@@ -156,37 +133,22 @@ productForm.addEventListener("submit", async (e)=>{
 
   let imageUrls = [];
   for(const file of imagesInput.files){
-    const imgRef = ref(storage, `products/${user.uid}/${Date.now()}_${file.name}`);
+    const imgRef = ref(storage, `products/${currentUser.uid}/${Date.now()}_${file.name}`);
     await uploadBytes(imgRef, file);
     const url = await getDownloadURL(imgRef);
     imageUrls.push(url);
   }
 
-  let product = {
+  const docRef = await addDoc(collection(db,"products"), {
     title: title.value,
     price: price.value,
     desc: desc.value,
-    category,
     country,
-    state: stateInput.value.trim(),
-    userId: user.uid,
-    userName: user.displayName,
-    userImg: user.photoURL,
-    images: imageUrls,
-    createdAt: serverTimestamp()
-  };
-
-  if(category === "بيوت"){
-    product.area = area.value;
-    product.landType = landType.value;
-    product.built = built.value;
-    product.deal = deal.value;
-  }else{
-    product.condition = condition.value;
-    product.defects = defects.value;
-  }
-
-  const docRef = await addDoc(collection(db,"products"), product);
+    state: stateInput.value,
+    userId: currentUser.uid,
+    createdAt: serverTimestamp(),
+    images: imageUrls
+  });
 
   alert("✅ تم نشر المنتج");
   window.location.href = `product.html?id=${docRef.id}`;
