@@ -3,176 +3,75 @@
 <head>
 <meta charset="UTF-8">
 <title>إضافة منتج</title>
-
 <style>
-body{
-  font-family:Arial;
-  background:#f5f5f5;
-  margin:0;
-  padding:10px;
-}
-h2{text-align:center}
-form{
-  background:#fff;
-  padding:15px;
-  border-radius:10px;
-}
-input, textarea, button, select{
-  width:100%;
-  padding:10px;
-  margin-bottom:10px;
-  border-radius:8px;
-  border:1px solid #ccc;
-}
-.hidden{display:none}
-button{
-  background:#4CAF50;
-  color:#fff;
-  border:none;
-  font-size:16px;
-}
-small{color:#666}
+body{font-family:Arial;direction:rtl;padding:20px}
+input,button{width:100%;margin:8px 0;padding:10px}
+button{background:#28a745;color:#fff;border:none;font-size:16px;cursor:pointer}
 </style>
 </head>
 
 <body>
 
-<h2>➕ إضافة منتج</h2>
+<h2>إضافة منتج</h2>
 
-<form id="productForm" novalidate>
-
-  <input id="title" placeholder="اسم المنتج / العنوان" required>
-  <input id="price" placeholder="السعر" required>
-
-  <input type="file" id="imagesInput" accept="image/*" multiple>
-  <small>يمكنك إضافة حتى 5 صور فقط</small>
-
-  <input id="stateInput" placeholder="الولاية / المدينة" required>
-
-  <select id="categorySelect" required>
-    <option value="">اختر نوع المنتج</option>
-    <option value="بيوت">🏠 منزل / بيت</option>
-    <option value="سيارات">🚗 سيارة</option>
-    <option value="هواتف">📱 هاتف</option>
-  </select>
-
-  <div id="normalFields">
-    <select id="condition">
-      <option value="">الحالة</option>
-      <option>جديد</option>
-      <option>مستعمل</option>
-    </select>
-    <input id="defects" placeholder="العيوب (إن وجدت)">
-  </div>
-
-  <div id="houseFields" class="hidden">
-    <input id="area" placeholder="المنطقة / الحي">
-    <input id="landType" placeholder="نوع الأرض">
-    <select id="built">
-      <option>مبني جاهز</option>
-      <option>أرض فقط</option>
-    </select>
-    <select id="deal">
-      <option>بيع</option>
-      <option>إيجار</option>
-    </select>
-  </div>
-
-  <textarea id="desc" placeholder="وصف المنتج" required></textarea>
-
-  <button type="submit">نشر المنتج</button>
+<form id="productForm">
+  <input id="title" placeholder="العنوان">
+  <input id="price" type="number" placeholder="السعر">
+  <input id="stateInput" placeholder="الولاية / المنطقة">
+  <input id="desc" placeholder="الوصف">
+  <button type="submit">نشر</button>
 </form>
 
 <script type="module">
+/* اختبار سريع */
+alert("الزر يعمل");
+
+/* Firebase */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+import { getFirestore, addDoc, collection } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyD3hAvhSDs-lX7ORCOR0DODT3l_S_gJA2o",
-  authDomain: "arshi-market.firebaseapp.com",
-  projectId: "arshi-market",
-  storageBucket: "arshi-market.appspot.com",
-  messagingSenderId: "930764899868",
-  appId: "1:930764899868:web:06795817be84f0a68a01d9"
+  apiKey: "PUT_YOUR_KEY",
+  authDomain: "PUT_YOUR_DOMAIN",
+  projectId: "PUT_YOUR_ID",
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const storage = getStorage(app);
 
 let currentUser = null;
-onAuthStateChanged(auth, (user)=> currentUser = user);
+onAuthStateChanged(auth, user => currentUser = user);
 
-/* ===== العناصر ===== */
-const productForm = document.getElementById("productForm");
-const title = document.getElementById("title");
-const price = document.getElementById("price");
-const desc = document.getElementById("desc");
-const stateInput = document.getElementById("stateInput");
-const imagesInput = document.getElementById("imagesInput");
-const categorySelect = document.getElementById("categorySelect");
-
-const normalFields = document.getElementById("normalFields");
-const houseFields = document.getElementById("houseFields");
-
-/* ===== إظهار الحقول حسب النوع ===== */
-categorySelect.addEventListener("change", ()=>{
-  if(categorySelect.value === "بيوت"){
-    houseFields.classList.remove("hidden");
-    normalFields.classList.add("hidden");
-  }else{
-    houseFields.classList.add("hidden");
-    normalFields.classList.remove("hidden");
-  }
-});
-
-/* ===== النشر ===== */
-productForm.addEventListener("submit", async (e)=>{
+document.getElementById("productForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
   if(!currentUser){
-    alert("❌ يجب تسجيل الدخول أولاً");
+    alert("سجّل دخول أولاً");
     return;
   }
 
-  if(!title.value || !price.value || !stateInput.value || !desc.value || !categorySelect.value){
-    alert("❌ يرجى ملء جميع الحقول");
+  const title = document.getElementById("title").value;
+  const price = document.getElementById("price").value;
+  const state = document.getElementById("stateInput").value;
+  const desc = document.getElementById("desc").value;
+
+  if(!title || !price || !state || !desc){
+    alert("املأ كل الحقول");
     return;
   }
 
-  const country = localStorage.getItem("country");
-  if(!country){
-    alert("❌ لم يتم اختيار الدولة");
-    return;
-  }
-
-  let imageUrls = [];
-  for(const file of imagesInput.files){
-    const imgRef = ref(storage, `products/${currentUser.uid}/${Date.now()}_${file.name}`);
-    await uploadBytes(imgRef, file);
-    imageUrls.push(await getDownloadURL(imgRef));
-  }
-
-  await addDoc(collection(db,"products"), {
-    title: title.value,
-    price: price.value,
-    desc: desc.value,
-    country,
-    state: stateInput.value,
-    category: categorySelect.value,
+  await addDoc(collection(db,"products"),{
+    title, price, state, desc,
     userId: currentUser.uid,
-    createdAt: serverTimestamp(),
-    images: imageUrls
+    createdAt: Date.now()
   });
 
-  alert("✅ تم نشر المنتج بنجاح");
-  window.location.href = "products.html";
+  alert("تم النشر بنجاح");
+  e.target.reset();
 });
 </script>
 
 </body>
 </html>
-  
