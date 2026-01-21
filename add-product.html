@@ -96,7 +96,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-/* ===== تعريف العناصر (هذا كان الناقص) ===== */
+/* ===== تعريف العناصر ===== */
 const productForm = document.getElementById("productForm");
 const title = document.getElementById("title");
 const price = document.getElementById("price");
@@ -180,11 +180,14 @@ productForm.addEventListener("submit", async (e)=>{
     product.defects = defects.value;
   }
 
-  await addDoc(collection(db,"products"), product);
+  /* ===== الإضافة الجديدة (عدم حذف أي شيء) ===== */
+  const docRef = await addDoc(collection(db,"products"), product);
+
   alert("✅ تم نشر المنتج");
-  window.location.href = "products.html";
+  window.location.href = `product.html?id=${docRef.id}`;
 });
 </script>
 
 </body>
 </html>
+  
