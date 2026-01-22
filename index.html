@@ -5,37 +5,44 @@
 <title>Arshi Market</title>
 </head>
 
-<body style="text-align:center;margin-top:50px;font-family:Arial">
+<body style="text-align:center; font-family:Arial">
 
 <h2>Arshi Market</h2>
-<p>تسجيل الدخول</p>
-
-<button id="loginBtn"
-style="padding:12px 20px;font-size:18px;">
-تسجيل الدخول عبر Google
-</button>
-
-<p id="status"></p>
+<p id="status">جاري التحقق من تسجيل الدخول...</p>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithRedirect } 
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithRedirect,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD3hAvhSds-1X7ORCORODDT31_S_gJA2o",
   authDomain: "arshi-market.firebaseapp.com",
   projectId: "arshi-market",
+  storageBucket: "arshi-market.appspot.com",
+  messagingSenderId: "930764898688",
   appId: "1:930764898688:web:06795817be840a68a01d9"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
+const status = document.getElementById("status");
 
-document.getElementById("loginBtn").addEventListener("click", () => {
-  document.getElementById("status").innerText = "⏳ جاري التحويل إلى Google...";
-  signInWithRedirect(auth, provider);
+/* لو المستخدم غير مسجل → دخله تلقائي */
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    status.innerText = "✅ تم تسجيل الدخول، سيتم التحويل...";
+    setTimeout(() => {
+      window.location.href = "country.html";
+    }, 1500);
+  } else {
+    signInWithRedirect(auth, provider);
+  }
 });
 </script>
 
