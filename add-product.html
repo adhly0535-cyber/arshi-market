@@ -22,6 +22,9 @@ button{
   border:none;
   border-radius:6px;
 }
+button:disabled{
+  opacity:0.6;
+}
 </style>
 </head>
 
@@ -43,7 +46,6 @@ button{
   <input type="file" id="imagesInput" multiple accept="image/*">
   <small>اختر من 1 إلى 5 صور</small>
 
-  <!-- حقول خاصة -->
   <div id="extraFields"></div>
 
   <textarea id="desc" placeholder="الوصف" required></textarea>
@@ -68,7 +70,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
-const storage = getStorage(app);
+const firebaseStorage = getStorage(app);
 
 let currentUser = null;
 onAuthStateChanged(auth, u => currentUser = u);
@@ -98,7 +100,7 @@ if(category === "سيارات"){
 if(category === "هواتف"){
   extra.innerHTML = `
     <input id="brand" placeholder="الشركة">
-    <input id="storage" placeholder="المساحة">
+    <input id="phoneStorage" placeholder="المساحة">
   `;
 }
 
@@ -116,15 +118,21 @@ document.getElementById("productForm").addEventListener("submit", async (e)=>{
     return;
   }
 
+  const btn = document.getElementById("publishBtn");
+  btn.disabled = true;
+  btn.innerText = "⏳ جارٍ النشر...";
+
   const imagesInput = document.getElementById("imagesInput");
   if(imagesInput.files.length < 1 || imagesInput.files.length > 5){
     alert("❌ اختر من 1 إلى 5 صور");
+    btn.disabled = false;
+    btn.innerText = "📤 نشر المنتج";
     return;
   }
 
   const imageUrls = [];
   for(const file of imagesInput.files){
-    const imgRef = ref(storage, `products/${currentUser.uid}/${Date.now()}_${file.name}`);
+    const imgRef = ref(firebaseStorage, `products/${currentUser.uid}/${Date.now()}_${file.name}`);
     await uploadBytes(imgRef, file);
     imageUrls.push(await getDownloadURL(imgRef));
   }
@@ -136,18 +144,18 @@ document.getElementById("productForm").addEventListener("submit", async (e)=>{
     state: stateInput.value,
     category,
     country,
-    rooms: rooms?.value || "",
-    area: area?.value || "",
-    model: model?.value || "",
-    year: year?.value || "",
-    brand: brand?.value || "",
-    storage: storage?.value || "",
+    rooms: document.getElementById("rooms")?.value || "",
+    area: document.getElementById("area")?.value || "",
+    model: document.getElementById("model")?.value || "",
+    year: document.getElementById("year")?.value || "",
+    brand: document.getElementById("brand")?.value || "",
+    phoneStorage: document.getElementById("phoneStorage")?.value || "",
     images: imageUrls,
     userId: currentUser.uid,
     createdAt: serverTimestamp()
   });
 
-  alert("✅ تم نشر المنتج بنجاح");
+  alert("✅ تم نشر المنتج");
   window.location.href = "products.html";
 });
 </script>
