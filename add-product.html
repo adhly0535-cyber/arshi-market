@@ -1,149 +1,127 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
-  <meta charset="UTF-8">
-  <title>إضافة منتج</title>
-  <style>
-    body{ font-family:Arial; background:#f5f5f5; margin:0; padding:10px; }
-    h2{text-align:center}
-    form{ background:#fff; padding:15px; border-radius:10px; }
-    input, textarea, button, select{ width:100%; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid #ccc; }
-    .hidden{display:none}
-    button{ background:#4CAF50; color:#fff; border:none; font-size:16px; }
-    small{color:#666}
-  </style>
+<meta charset="UTF-8">
+<title>إضافة منتج</title>
+
+<style>
+body{
+  font-family:Arial;
+  background:#f5f5f5;
+  padding:10px;
+}
+input, textarea, button, select{
+  width:100%;
+  margin:6px 0;
+  padding:10px;
+  font-size:14px;
+}
+button{
+  background:#4CAF50;
+  color:#fff;
+  border:none;
+  border-radius:6px;
+}
+</style>
 </head>
+
 <body>
-  <h2>➕ إضافة منتج</h2>
-  <form id="productForm">
-    <input id="title" placeholder="اسم المنتج" required>
-    <textarea id="desc" placeholder="وصف المنتج"></textarea>
-    <input type="number" id="price" placeholder="السعر">
-    <select id="categorySelect">
-      <option value="🏠 منزل / بيت">🏠 منزل / بيت</option>
-      <option value="🚗 سيارة">🚗 سيارة</option>
-      <option value="📱 هاتف">📱 هاتف</option>
-    </select>
-    <select id="stateInput">
-      <option value="جديد">جديد</option>
-      <option value="مستعمل">مستعمل</option>
-    </select>
-    <div id="houseFields" class="hidden">
-      <select id="houseType">
-        <option value="مبني جاهز">مبني جاهز</option>
-        <option value="أرض فقط">أرض فقط</option>
-      </select>
-      <select id="houseAction">
-        <option value="بيع">بيع</option>
-        <option value="إيجار">إيجار</option>
-      </select>
-    </div>
-    <input type="file" id="imagesInput" multiple accept="image/*">
-    <button type="submit">نشر المنتج</button>
-  </form>
 
-  <script type="module">
-    import { initializeApp } from "https:                                                     
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, addDoc, collection, serverTimestamp } from "https:                                                           
-    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+<h3 id="title"></h3>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyD3hAvhSDs-lX7ORCOR0DODT3l_S_gJA2o",
-      authDomain: "arshi-market.firebaseapp.com",
-      projectId: "arshi-market",
-      storageBucket: "arshi-market.appspot.com",
-      messagingSenderId: "930764899868",
-      appId: "1:930764899868:web:06795817be84f0a68a01d9"
-    };
+<form id="productForm">
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    const storage = getStorage(app);
-    let currentUser = null;
+  <input id="mainTitle" placeholder="عنوان الإعلان" required>
+  <input id="price" placeholder="السعر" required>
 
-    onAuthStateChanged(auth, (user) => {
-      currentUser = user;
+  <!-- حقول خاصة -->
+  <div id="extraFields"></div>
+
+  <textarea id="desc" placeholder="الوصف"></textarea>
+
+  <button type="submit">📤 نشر المنتج</button>
+</form>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+/* Firebase */
+const firebaseConfig = {
+  apiKey: "AIzaSyD3hAvhSDs-lX7ORCOR0DODT3l_S_gJA2o",
+  authDomain: "arshi-market.firebaseapp.com",
+  projectId: "arshi-market",
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+/* التصنيف */
+const params = new URLSearchParams(window.location.search);
+const category = params.get('cat');
+const country = localStorage.getItem('country');
+
+document.getElementById('title').innerText = 'إضافة ' + category;
+
+/* الحقول حسب التصنيف */
+const extra = document.getElementById('extraFields');
+
+if(category === 'بيوت'){
+  extra.innerHTML = `
+    <input id="rooms" placeholder="عدد الغرف">
+    <input id="area" placeholder="المساحة (متر)">
+  `;
+}
+if(category === 'سيارات'){
+  extra.innerHTML = `
+    <input id="model" placeholder="الموديل">
+    <input id="year" placeholder="سنة الصنع">
+  `;
+}
+if(category === 'هواتف'){
+  extra.innerHTML = `
+    <input id="brand" placeholder="الشركة">
+    <input id="storage" placeholder="المساحة">
+  `;
+}
+
+/* النشر */
+const form = document.getElementById('productForm');
+
+onAuthStateChanged(auth, user=>{
+  if(!user){
+    alert('يجب تسجيل الدخول');
+    return;
+  }
+
+  form.onsubmit = async (e)=>{
+    e.preventDefault();
+
+    await addDoc(collection(db,'products'),{
+      title: mainTitle.value,
+      price: price.value,
+      desc: desc.value,
+      category,
+      country,
+      rooms: rooms?.value || '',
+      area: area?.value || '',
+      model: model?.value || '',
+      year: year?.value || '',
+      brand: brand?.value || '',
+      storage: storage?.value || '',
+      userName: user.displayName,
+      userImg: user.photoURL,
+      createdAt: serverTimestamp()
     });
 
-    const productForm = document.getElementById("productForm");
-    const title = document.getElementById("title");
-    const price = document.getElementById("price");
-    const desc = document.getElementById("desc");
-    const stateInput = document.getElementById("stateInput");
-    const imagesInput = document.getElementById("imagesInput");
-    const categorySelect = document.getElementById("categorySelect");
-    const houseFields = document.getElementById("houseFields");
-    const houseType = document.getElementById("houseType");
-    const houseAction = document.getElementById("houseAction");
+    // 🔥 بعد النشر
+    window.location.href='products.html';
+  }
+});
+</script>
 
-    categorySelect.addEventListener("change", () => {
-      if (categorySelect.value === "🏠 منزل / بيت") {
-        houseFields.classList.remove("hidden");
-      } else {
-        houseFields.classList.add("hidden");
-      }
-    });
-
-    productForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      try {
-        if (!currentUser) {
-          alert("❌ يجب تسجيل الدخول أولاً");
-          return;
-        }
-        if (!title.value || !price.value || !stateInput.value || !desc.value || !categorySelect.value) {
-          alert("❌ يرجى ملء جميع الحقول");
-          return;
-        }
-        if (imagesInput.files.length < 1) {
-          alert("❌ يرجى رفع صور");
-          return;
-        }
-
-        const country = localStorage.getItem("country");
-        if (!country) {
-          alert("❌ لم يتم اختيار الدولة");
-          return;
-        }
-
-        let imageUrls = [];
-        for (const file of imagesInput.files) {
-          const imgRef = ref(storage, `products/${currentUser.uid}/${Date.now()}_${file.name}`);
-          await uploadBytes(imgRef, file);
-          const url = await getDownloadURL(imgRef);
-          imageUrls.push(url);
-        }
-
-        let productData = {
-          title: title.value,
-          price: price.value,
-          desc: desc.value,
-          country,
-          state: stateInput.value,
-          category: categorySelect.value,
-          userId: currentUser.uid,
-          createdAt: serverTimestamp(),
-          images: imageUrls
-        };
-
-        if (categorySelect.value === "🏠 منزل / بيت") {
-          productData.houseType = houseType.value;
-          productData.houseAction = houseAction.value;
-        }
-
-        const docRef = await addDoc(collection(db, "products"), productData);
-
-        alert("✅ تم نشر المنتج بنجاح");
-        window.location.href = `products.html?id=${docRef.id}`;
-      } catch (error) {
-        console.error("Error:", error);
-        alert("حصل خطأ: " + error.message);
-      }
-    });
-  </script>
 </body>
 </html>
-
 
