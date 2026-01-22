@@ -27,8 +27,6 @@ const firebaseConfig = {
   apiKey: "AIzaSyD3hAvhSds-1X7ORCORODDT31_S_gJA2o",
   authDomain: "arshi-market.firebaseapp.com",
   projectId: "arshi-market",
-  storageBucket: "arshi-market.appspot.com",
-  messagingSenderId: "930764898688",
   appId: "1:930764898688:web:06795817be840a68a01d9"
 };
 
@@ -36,11 +34,12 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
+// عند الضغط
 document.getElementById("loginBtn").onclick = () => {
   signInWithRedirect(auth, provider);
 };
 
-// مهم جداً
+// 🔥 هذا هو السطر الناقص
 getRedirectResult(auth)
   .then((result) => {
     if (result?.user) {
@@ -48,7 +47,7 @@ getRedirectResult(auth)
     }
   })
   .catch((error) => {
-    alert(error.message);
+    console.error(error);
   });
 </script>
 
