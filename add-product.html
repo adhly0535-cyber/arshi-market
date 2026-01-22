@@ -158,8 +158,16 @@ document.getElementById("productForm").addEventListener("submit", async (e)=>{
   alert("✅ تم نشر المنتج");
   window.location.href = "products.html";
 });
-  <script type="module">
-alert("JS يعمل");
+  <form id="testForm">
+  <button type="submit">اختبار الزر</button>
+</form>
+
+<script>
+document.getElementById("testForm").addEventListener("submit", function(e){
+  e.preventDefault();
+  alert("الزر يعمل 🔥");
+});
+</script>
 </script>
 
 </body>
