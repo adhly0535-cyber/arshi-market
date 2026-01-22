@@ -1,54 +1,79 @@
-<script>
-function addProduct() {
-  const name = document.getElementById("name").value.trim();
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD3hAvhSDs-lX7ORCOR0DODT3l_S_gJA2o",
+  authDomain: "arshi-market.firebaseapp.com",
+  projectId: "arshi-market",
+  storageBucket: "arshi-market.appspot.com",
+  messagingSenderId: "930764899868",
+  appId: "1:930764899868:web:06795817be84f0a68a01d9"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
+
+let currentUser = null;
+onAuthStateChanged(auth, user => currentUser = user);
+
+document.getElementById("publishBtn").addEventListener("click", publishProduct);
+
+async function publishProduct(){
+  if(!currentUser){
+    alert("❌ يجب تسجيل الدخول أولاً");
+    return;
+  }
+
+  const title = document.getElementById("title").value.trim();
+  const price = document.getElementById("price").value.trim();
   const desc = document.getElementById("desc").value.trim();
-  const price = document.getElementById("price").value;
-  const imagesInput = document.getElementById("images");
+  const stateInput = document.getElementById("stateInput").value;
+  const imagesInput = document.getElementById("imagesInput");
 
-  if (name === "") {
-    alert("❌ يجب كتابة اسم المنتج");
+  if(!title || !price || !desc || !stateInput){
+    alert("❌ يرجى ملء جميع الحقول");
     return;
   }
 
-  if (!imagesInput.files || imagesInput.files.length < 5) {
-    alert("❌ يجب اختيار 5 صور على الأقل");
+  if(imagesInput.files.length < 1 || imagesInput.files.length > 5){
+    alert("❌ يجب اختيار من 1 إلى 5 صور فقط");
     return;
   }
 
-  const files = Array.from(imagesInput.files);
-  const images = [];
+  const country = localStorage.getItem("country");
+  if(!country){
+    alert("❌ لم يتم اختيار الدولة");
+    return;
+  }
 
-  let loadedCount = 0;
+  const imageUrls = [];
+  for(const file of imagesInput.files){
+    const imgRef = ref(storage, `products/${currentUser.uid}/${Date.now()}_${file.name}`);
+    await uploadBytes(imgRef, file);
+    imageUrls.push(await getDownloadURL(imgRef));
+  }
 
-  files.forEach(file => {
-    const reader = new FileReader();
-    reader.onload = e => {
-      images.push(e.target.result);
-      loadedCount++;
-
-      if (loadedCount === files.length) {
-        saveProduct(name, desc, price, images);
-      }
-    };
-    reader.readAsDataURL(file);
+  const docRef = await addDoc(collection(db,"products"),{
+    title, price, desc,
+    state: stateInput,
+    country,
+    userId: currentUser.uid,
+    images: imageUrls,
+    createdAt: serverTimestamp()
   });
-}
-
-function saveProduct(name, desc, price, images) {
-  let products = JSON.parse(localStorage.getItem("products")) || [];
-
-  products.push({
-    name,
-    desc,
-    price,
-    images,
-    date: Date.now()
-  });
-
-  localStorage.setItem("products", JSON.stringify(products));
 
   alert("✅ تم نشر المنتج بنجاح");
-
-  window.location.href = "products.html";
+  setTimeout(() => {
+  if (!localStorage.getItem("userCountry")) {
+    window.location.href = "country.html";
+  } else {
+    window.location.href = "products.html";
+  }
+}, 2000);
 }
 </script>
