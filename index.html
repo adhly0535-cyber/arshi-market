@@ -22,7 +22,8 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import { 
   getAuth,
   GoogleAuthProvider,
-  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
@@ -44,14 +45,23 @@ const loginBox = document.getElementById("loginBox");
 const successBox = document.getElementById("successBox");
 const welcomeText = document.getElementById("welcomeText");
 
-loginBtn.onclick = async () => {
-  try {
-    await signInWithPopup(auth, provider);
-  } catch (e) {
-    alert("❌ " + e.message);
-  }
+/* عند الضغط على زر تسجيل الدخول */
+loginBtn.onclick = () => {
+  signInWithRedirect(auth, provider);
 };
 
+/* بعد الرجوع من Google */
+getRedirectResult(auth)
+  .then((result) => {
+    if (result && result.user) {
+      console.log("تم تسجيل الدخول");
+    }
+  })
+  .catch((error) => {
+    alert("❌ " + error.message);
+  });
+
+/* مراقبة حالة تسجيل الدخول */
 onAuthStateChanged(auth, (user) => {
   if (user) {
     welcomeText.style.display = "none";
