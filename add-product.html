@@ -23,14 +23,11 @@ button{background:#28a745;color:#fff;border:none;font-size:16px;cursor:pointer}
 </form>
 
 <script type="module">
-/* اختبار سريع */
-alert("الزر يعمل");
-
-/* Firebase */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, addDoc, collection } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+/* Firebase config */
 const firebaseConfig = {
   apiKey: "PUT_YOUR_KEY",
   authDomain: "PUT_YOUR_DOMAIN",
@@ -42,34 +39,50 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 let currentUser = null;
-onAuthStateChanged(auth, user => currentUser = user);
 
+/* تأكيد تسجيل الدخول */
+onAuthStateChanged(auth, user => {
+  if(!user){
+    alert("يجب تسجيل الدخول أولاً");
+    window.location.href = "index.html";
+  } else {
+    currentUser = user;
+  }
+});
+
+/* نشر المنتج */
 document.getElementById("productForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  if(!currentUser){
-    alert("سجّل دخول أولاً");
-    return;
-  }
-
-  const title = document.getElementById("title").value;
-  const price = document.getElementById("price").value;
-  const state = document.getElementById("stateInput").value;
-  const desc = document.getElementById("desc").value;
+  const title = document.getElementById("title").value.trim();
+  const price = document.getElementById("price").value.trim();
+  const state = document.getElementById("stateInput").value.trim();
+  const desc = document.getElementById("desc").value.trim();
+  const country = localStorage.getItem("country") || "";
 
   if(!title || !price || !state || !desc){
     alert("املأ كل الحقول");
     return;
   }
 
-  await addDoc(collection(db,"products"),{
-    title, price, state, desc,
-    userId: currentUser.uid,
-    createdAt: Date.now()
-  });
+  try {
+    await addDoc(collection(db,"products"),{
+      title,
+      price: Number(price),
+      state,
+      desc,
+      country,
+      userId: currentUser.uid,
+      createdAt: Date.now()
+    });
 
-  alert("تم النشر بنجاح");
-  e.target.reset();
+    alert("✅ تم نشر المنتج بنجاح");
+    window.location.href = "products.html";
+
+  } catch (err) {
+  
+    console.error(err);
+  }
 });
 </script>
 
