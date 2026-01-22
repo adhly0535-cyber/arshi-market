@@ -104,12 +104,11 @@ if(category === "هواتف"){
   `;
 }
 
-/* النشر
+/* النشر */
 document.getElementById("productForm").addEventListener("submit", async (e)=>{
   e.preventDefault();
 
-  const user = auth.currentUser;
-  if(!user){
+  if(!currentUser){
     alert("❌ يجب تسجيل الدخول");
     return;
   }
@@ -130,35 +129,6 @@ document.getElementById("productForm").addEventListener("submit", async (e)=>{
     btn.innerText = "📤 نشر المنتج";
     return;
   }
-
-  const imageUrls = [];
-  for(const file of imagesInput.files){
-    const imgRef = ref(firebaseStorage, `products/${user.uid}/${Date.now()}_${file.name}`);
-    await uploadBytes(imgRef, file);
-    imageUrls.push(await getDownloadURL(imgRef));
-  }
-
-  await addDoc(collection(db,"products"),{
-    title: title.value,
-    price: price.value,
-    desc: desc.value,
-    state: stateInput.value,
-    category,
-    country,
-    rooms: document.getElementById("rooms")?.value || "",
-    area: document.getElementById("area")?.value || "",
-    model: document.getElementById("model")?.value || "",
-    year: document.getElementById("year")?.value || "",
-    brand: document.getElementById("brand")?.value || "",
-    phoneStorage: document.getElementById("phoneStorage")?.value || "",
-    images: imageUrls,
-    userId: user.uid,
-    createdAt: serverTimestamp()
-  });
-
-  alert("✅ تم نشر المنتج");
-  window.location.href = "products.html";
-});
 
   const imageUrls = [];
   for(const file of imagesInput.files){
