@@ -1,47 +1,42 @@
-function signInWithGoogle() {
-  const provider = new firebase.auth.GoogleAuthProvider();
+// Firebase SDKs
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { 
+  getAuth, 
+  GoogleAuthProvider, 
+  signInWithPopup 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-  firebase.auth()
-    .signInWithPopup(provider)
-    .then((result) => {
-      console.log("تم تسجيل الدخول بنجاح");
+// 🔴 عدّل هذه القيم فقط من Firebase Console
+const firebaseConfig = {
+  apiKey: "API_KEY",
+  authDomain: "PROJECT_ID.firebaseapp.com",
+  projectId: "PROJECT_ID",
+  storageBucket: "PROJECT_ID.appspot.com",
+  messagingSenderId: "SENDER_ID",
+  appId: "APP_ID"
+};
 
-      // بيانات المستخدم
-      const user = result.user;
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
 
-      // حفظ بيانات المستخدم
-      localStorage.setItem("user", JSON.stringify({
-        uid: user.uid,
-        name: user.displayName,
-        email: user.email,
-        photo: user.photoURL
-      }));
+// زر تسجيل الدخول
+const loginBtn = document.getElementById("loginBtn");
 
-      // 🔹 التأكد من وجود دولة
-      const savedCountry = localStorage.getItem("country");
+loginBtn.addEventListener("click", async () => {
+  try {
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
 
-      // لو ما اختار دولة قبل → نوديه صفحة اختيار الدولة
-      if (!savedCountry) {
-        window.location.href = "country.html";
-      } 
-      // لو الدولة موجودة → مباشرة المنتجات
-      else {
-        window.location.href = "products.html";
-      }
-    })
-    .catch((error) => {
-      console.error(error);
-      alert("حدث خطأ في تسجيل الدخول");
-    });
-}
+    console.log("تم تسجيل الدخول:", user);
+    alert("تم تسجيل الدخول بنجاح ✅");
 
-/* 🔹 مهم جدًا: عند إعادة فتح الموقع */
-firebase.auth().onAuthStateChanged((user) => {
-  if (user) {
-    const savedCountry = localStorage.getItem("country");
+    // تحويل لصفحة ثانية (اختياري)
+    // window.location.href = "home.html";
 
-    if (!savedCountry) {
-      window.location.href = "country.html";
-    }
+  } catch (error) {
+    console.error(error);
+    alert("خطأ في تسجيل الدخول ❌\n" + error.message);
   }
 });
