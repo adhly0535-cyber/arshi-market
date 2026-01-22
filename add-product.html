@@ -43,7 +43,7 @@ button:disabled{
     <option value="مستعمل">مستعمل</option>
   </select>
 
-  <input type="file" id="imagesInput" multiple accept="image/*">
+  <input type="file" id="imagesInput" multiple accept="image/*" required>
   <small>اختر من 1 إلى 5 صور</small>
 
   <div id="extraFields"></div>
@@ -72,13 +72,22 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 const firebaseStorage = getStorage(app);
 
-let currentUser = null;
-onAuthStateChanged(auth, u => currentUser = u);
+/* تأكيد تسجيل الدخول */
+const publishBtn = document.getElementById("publishBtn");
+publishBtn.disabled = true;
+
+onAuthStateChanged(auth, user=>{
+  if(user){
+    publishBtn.disabled = false;
+  }else{
+    alert("❌ يجب تسجيل الدخول أولاً");
+  }
+});
 
 /* التصنيف + الدولة */
 const params = new URLSearchParams(window.location.search);
-const category = params.get('cat');
-const country = localStorage.getItem('country');
+const category = params.get("cat");
+const country = localStorage.getItem("country");
 
 document.getElementById("pageTitle").innerText = "إضافة " + category;
 
@@ -108,31 +117,28 @@ if(category === "هواتف"){
 document.getElementById("productForm").addEventListener("submit", async (e)=>{
   e.preventDefault();
 
-  if(!currentUser){
-    alert("❌ يجب تسجيل الدخول");
-    return;
-  }
+  const user = auth.currentUser;
+  if(!user) return;
 
   if(!country){
     alert("❌ يجب اختيار الدولة");
     return;
   }
 
-  const btn = document.getElementById("publishBtn");
-  btn.disabled = true;
-  btn.innerText = "⏳ جارٍ النشر...";
+  publishBtn.disabled = true;
+  publishBtn.innerText = "⏳ جارٍ النشر...";
 
   const imagesInput = document.getElementById("imagesInput");
   if(imagesInput.files.length < 1 || imagesInput.files.length > 5){
     alert("❌ اختر من 1 إلى 5 صور");
-    btn.disabled = false;
-    btn.innerText = "📤 نشر المنتج";
+    publishBtn.disabled = false;
+    publishBtn.innerText = "📤 نشر المنتج";
     return;
   }
 
   const imageUrls = [];
   for(const file of imagesInput.files){
-    const imgRef = ref(firebaseStorage, `products/${currentUser.uid}/${Date.now()}_${file.name}`);
+    const imgRef = ref(firebaseStorage, `products/${user.uid}/${Date.now()}_${file.name}`);
     await uploadBytes(imgRef, file);
     imageUrls.push(await getDownloadURL(imgRef));
   }
@@ -151,23 +157,13 @@ document.getElementById("productForm").addEventListener("submit", async (e)=>{
     brand: document.getElementById("brand")?.value || "",
     phoneStorage: document.getElementById("phoneStorage")?.value || "",
     images: imageUrls,
-    userId: currentUser.uid,
+    userId: user.uid,
     createdAt: serverTimestamp()
   });
 
-  alert("✅ تم نشر المنتج");
+  alert("✅ تم نشر المنتج بنجاح");
   window.location.href = "products.html";
 });
-  <form id="testForm">
-  <button type="submit">اختبار الزر</button>
-</form>
-
-<script>
-document.getElementById("testForm").addEventListener("submit", function(e){
-  e.preventDefault();
-  alert("الزر يعمل 🔥");
-});
-</script>
 </script>
 
 </body>
