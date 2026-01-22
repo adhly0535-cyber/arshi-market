@@ -65,35 +65,6 @@ body{
   border-radius:8px;
 }
 
-.user-bar{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-top:6px;
-}
-
-.user{
-  display:flex;
-  align-items:center;
-  gap:5px;
-}
-
-.user img{
-  width:26px;
-  height:26px;
-  border-radius:50%;
-}
-
-.chat-btn{
-  background:#4CAF50;
-  color:#fff;
-  border:none;
-  padding:4px 8px;
-  border-radius:14px;
-  font-size:12px;
-  cursor:pointer;
-}
-
 .bottom-nav{
   position:fixed;
   bottom:0;
@@ -139,6 +110,7 @@ body{
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+/* Firebase */
 const firebaseConfig = {
   apiKey: "AIzaSyD3hAvhSDs-lX7ORCOR0DODT3l_S_gJA2o",
   authDomain: "arshi-market.firebaseapp.com",
@@ -149,59 +121,74 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 /* الدولة */
-const userCountry = localStorage.getItem('country');
-if(!userCountry){
-  window.location.href='country.html';
+const country = localStorage.getItem("country");
+if(!country){
+  window.location.href = "country.html";
 }
-document.getElementById('countryName').innerText = '📍 الدولة: ' + userCountry;
-document.getElementById('countryName').onclick = ()=>window.location.href='country.html';
 
-let currentCategory = '';
+const countryName = document.getElementById("countryName");
+countryName.innerText = "📍 الدولة: " + country;
+countryName.onclick = ()=> window.location.href="country.html";
+
+/* المنتجات */
 let allProducts = [];
+let currentCategory = "";
 
-/* جلب المنتجات (بدون orderBy) */
+/* جلب المنتجات */
 onSnapshot(collection(db,"products"), snapshot=>{
-  allProducts=[];
+  allProducts = [];
   snapshot.forEach(doc=>{
     allProducts.push(doc.data());
   });
-  if(currentCategory) filterAndShow();
+  showProducts();
 });
 
-/* التصنيفات */
+/* اختيار التصنيف */
 window.selectCategory = function(cat){
   currentCategory = cat;
-  localStorage.setItem('addCategory',cat);
-  document.getElementById('addBtn').style.display='inline-block';
-  filterAndShow();
+  localStorage.setItem("addCategory", cat);
+  document.getElementById("addBtn").style.display = "inline-block";
+  showProducts();
 };
 
-function filterAndShow(){
+/* عرض المنتجات */
+function showProducts(){
+  const box = document.getElementById("products");
+  box.innerHTML = "";
+
   const filtered = allProducts.filter(p =>
-    p.country === userCountry &&
-    p.category === currentCategory
+    p.country === country &&
+    (!currentCategory || p.category === currentCategory)
   );
-  displayProducts(filtered);
-}
 
-function displayProducts(list){
-  const div=document.getElementById('products');
-  div.innerHTML = list.length ? '' : '<p>لا توجد منتجات</p>';
+  if(!filtered.length){
+    box.innerHTML = "<p>لا توجد منتجات</p>";
+    return;
+  }
 
-  list.forEach(p=>{
-    div.innerHTML += `
-    <div class="product-card">
-      <img class="main-img" src="${p.images?.[0] || ''}">
-      <p>${p.title || p.desc || ''}</p>
-      <b>${p.price || ''}</b>
-    </div>`;
+  filtered.forEach(p=>{
+    box.innerHTML += `
+      <div class="product-card">
+        <img class="main-img" src="${p.images?.[0] || ''}">
+        <p>${p.title || ''}</p>
+        <b>${p.price || ''}</b>
+      </div>
+    `;
   });
 }
 
+/* إضافة منتج */
 window.goAddProduct = function(){
-  window.location.href='add-product.html';
-}
-window.go = p => window.location.href=p;
+  const cat = localStorage.getItem("addCategory");
+  if(!cat){
+    alert("❌ اختر تصنيف أولاً");
+    return;
+  }
+  window.location.href = `add-product.html?cat=${encodeURIComponent(cat)}`;
+};
+
+/* تنقل */
+window.go = p => window.location.href = p;
 </script>
 
 </body>
