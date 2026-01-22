@@ -29,11 +29,11 @@
       <option value="مستعمل">مستعمل</option>
     </select>
     <div id="houseFields" class="hidden">
-      <select>
+      <select id="houseType">
         <option value="مبني جاهز">مبني جاهز</option>
         <option value="أرض فقط">أرض فقط</option>
       </select>
-      <select>
+      <select id="houseAction">
         <option value="بيع">بيع</option>
         <option value="إيجار">إيجار</option>
       </select>
@@ -65,7 +65,6 @@
 
     onAuthStateChanged(auth, (user) => {
       currentUser = user;
-      console.log("User:", user);
     });
 
     const productForm = document.getElementById("productForm");
@@ -75,6 +74,17 @@
     const stateInput = document.getElementById("stateInput");
     const imagesInput = document.getElementById("imagesInput");
     const categorySelect = document.getElementById("categorySelect");
+    const houseFields = document.getElementById("houseFields");
+    const houseType = document.getElementById("houseType");
+    const houseAction = document.getElementById("houseAction");
+
+    categorySelect.addEventListener("change", () => {
+      if (categorySelect.value === "🏠 منزل / بيت") {
+        houseFields.classList.remove("hidden");
+      } else {
+        houseFields.classList.add("hidden");
+      }
+    });
 
     productForm.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -104,10 +114,9 @@
           await uploadBytes(imgRef, file);
           const url = await getDownloadURL(imgRef);
           imageUrls.push(url);
-          console.log("Image URL:", url);
         }
 
-        await addDoc(collection(db, "products"), {
+        let productData = {
           title: title.value,
           price: price.value,
           desc: desc.value,
@@ -117,10 +126,17 @@
           userId: currentUser.uid,
           createdAt: serverTimestamp(),
           images: imageUrls
-        });
+        };
+
+        if (categorySelect.value === "🏠 منزل / بيت") {
+          productData.houseType = houseType.value;
+          productData.houseAction = houseAction.value;
+        }
+
+        const docRef = await addDoc(collection(db, "products"), productData);
 
         alert("✅ تم نشر المنتج بنجاح");
-        window.location.href = "products.html";
+        window.location.href = `products.html?id=${docRef.id}`;
       } catch (error) {
         console.error("Error:", error);
         alert("حصل خطأ: " + error.message);
@@ -129,4 +145,5 @@
   </script>
 </body>
 </html>
+
 
