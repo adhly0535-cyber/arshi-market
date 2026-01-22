@@ -1,87 +1,37 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-  <meta charset="UTF-8">
-  <title>إضافة منتج</title>
-  <style>
-    body {
-      font-family: Tahoma;
-      background: #f4f4f4;
-      padding: 20px;
-    }
-    .container {
-      max-width: 500px;
-      background: #fff;
-      padding: 20px;
-      border-radius: 8px;
-      margin: auto;
-    }
-    input, textarea, button {
-      width: 100%;
-      margin-bottom: 10px;
-      padding: 10px;
-      font-size: 14px;
-    }
-    button {
-      background: #828a745;
-      color: #fff;
-      border: none;
-      cursor: pointer;
-    }
-    button:hover {
-      opacity: 0.9;
-    }
-    .msg {
-      color: green;
-      text-align: center;
-      display: none;
-    }
-  </style>
-</head>
-<body>
-
-<div class="container">
-  <h2>إضافة منتج جديد</h2>
-
-  <input type="text" id="name" placeholder="اسم المنتج" required>
-  <textarea id="desc" placeholder="وصف المنتج"></textarea>
-  <input type="number" id="price" placeholder="السعر">
-
-  <input type="file" id="images" multiple accept="image/*">
-
-  <button onclick="addProduct()">نشر المنتج</button>
-
-  <p class="msg" id="msg">✅ تم النشر بنجاح</p>
-</div>
-
 <script>
 function addProduct() {
-  const name = document.getElementById("name").value;
-  const desc = document.getElementById("desc").value;
+  const name = document.getElementById("name").value.trim();
+  const desc = document.getElementById("desc").value.trim();
   const price = document.getElementById("price").value;
   const imagesInput = document.getElementById("images");
 
-  if (!name || imagesInput.files.length < 5) {
-    alert("يجب إدخال اسم المنتج ورفع 5 صور على الأقل");
+  if (name === "") {
+    alert("❌ يجب كتابة اسم المنتج");
     return;
   }
 
-  let images = [];
-  const files = imagesInput.files;
-  let loaded = 0;
+  if (!imagesInput.files || imagesInput.files.length < 5) {
+    alert("❌ يجب اختيار 5 صور على الأقل");
+    return;
+  }
 
-  for (let i = 0; i < files.length; i++) {
+  const files = Array.from(imagesInput.files);
+  const images = [];
+
+  let loadedCount = 0;
+
+  files.forEach(file => {
     const reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = e => {
       images.push(e.target.result);
-      loaded++;
+      loadedCount++;
 
-      if (loaded === files.length) {
+      if (loadedCount === files.length) {
         saveProduct(name, desc, price, images);
       }
     };
-    reader.readAsDataURL(files[i]);
-  }
+    reader.readAsDataURL(file);
+  });
 }
 
 function saveProduct(name, desc, price, images) {
@@ -91,18 +41,14 @@ function saveProduct(name, desc, price, images) {
     name,
     desc,
     price,
-    images
+    images,
+    date: Date.now()
   });
 
   localStorage.setItem("products", JSON.stringify(products));
 
-  document.getElementById("msg").style.display = "block";
+  alert("✅ تم نشر المنتج بنجاح");
 
-  setTimeout(() => {
-    window.location.href = "index.html";
-  }, 1500);
+  window.location.href = "products.html";
 }
 </script>
-
-</body>
-</html>
