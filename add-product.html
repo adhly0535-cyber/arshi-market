@@ -1,82 +1,107 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<title>إضافة منتج</title>
-<style>
-body{font-family:Arial;direction:rtl;padding:20px}
-input,button{width:100%;margin:8px 0;padding:10px}
-button{background:#28a745;color:#fff;border:none;font-size:16px;cursor:pointer}
-</style>
+  <meta charset="UTF-8">
+  <title>إضافة منتج</title>
+  <style>
+    body {
+      font-family: Tahoma;
+      background: #f4f4f4;
+      padding: 20px;
+    }
+    .container {
+      max-width: 500px;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      margin: auto;
+    }
+    input, textarea, button {
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 10px;
+      font-size: 14px;
+    }
+    button {
+      background: #828a745;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      opacity: 0.9;
+    }
+    .msg {
+      color: green;
+      text-align: center;
+      display: none;
+    }
+  </style>
 </head>
-
 <body>
 
-<h2>إضافة منتج</h2>
+<div class="container">
+  <h2>إضافة منتج جديد</h2>
 
-<form id="productForm">
-  <input id="title" placeholder="العنوان">
-  <input id="price" type="number" placeholder="السعر">
-  <input id="stateInput" placeholder="الولاية / المنطقة">
-  <input id="desc" placeholder="الوصف">
-  <button type="submit">نشر</button>
-</form>
+  <input type="text" id="name" placeholder="اسم المنتج" required>
+  <textarea id="desc" placeholder="وصف المنتج"></textarea>
+  <input type="number" id="price" placeholder="السعر">
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, addDoc, collection } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  <input type="file" id="images" multiple accept="image/*">
 
-const firebaseConfig = {
-  apiKey: "PUT_YOUR_KEY",
-  authDomain: "PUT_YOUR_DOMAIN",
-  projectId: "PUT_YOUR_ID",
-};
+  <button onclick="addProduct()">نشر المنتج</button>
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+  <p class="msg" id="msg">✅ تم النشر بنجاح</p>
+</div>
 
-document.getElementById("productForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
+<script>
+function addProduct() {
+  const name = document.getElementById("name").value;
+  const desc = document.getElementById("desc").value;
+  const price = document.getElementById("price").value;
+  const imagesInput = document.getElementById("images");
 
-  const user = auth.currentUser; // ✅ الحل هنا
-
-  if (!user) {
-    alert("يجب تسجيل الدخول أولاً");
+  if (!name || imagesInput.files.length < 5) {
+    alert("يجب إدخال اسم المنتج ورفع 5 صور على الأقل");
     return;
   }
 
-  const title = document.getElementById("title").value.trim();
-  const price = document.getElementById("price").value.trim();
-  const state = document.getElementById("stateInput").value.trim();
-  const desc = document.getElementById("desc").value.trim();
-  const country = localStorage.getItem("country") || "";
+  let images = [];
+  const files = imagesInput.files;
+  let loaded = 0;
 
-  if (!title || !price || !state || !desc) {
-    alert("املأ كل الحقول");
-    return;
+  for (let i = 0; i < files.length; i++) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      images.push(e.target.result);
+      loaded++;
+
+      if (loaded === files.length) {
+        saveProduct(name, desc, price, images);
+      }
+    };
+    reader.readAsDataURL(files[i]);
   }
+}
 
-  try {
-    await addDoc(collection(db, "products"), {
-      title,
-      price: Number(price),
-      state,
-      desc,
-      country,
-      userId: user.uid,
-      createdAt: Date.now()
-    });
+function saveProduct(name, desc, price, images) {
+  let products = JSON.parse(localStorage.getItem("products")) || [];
 
-    alert("✅ تم نشر المنتج بنجاح");
-    window.location.href = "products.html";
+  products.push({
+    name,
+    desc,
+    price,
+    images
+  });
 
-  } catch (err) {
-    alert("❌ فشل النشر");
-    console.error(err);
-  }
-});
+  localStorage.setItem("products", JSON.stringify(products));
+
+  document.getElementById("msg").style.display = "block";
+
+  setTimeout(() => {
+    window.location.href = "index.html";
+  }, 1500);
+}
 </script>
 
 </body>
