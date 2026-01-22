@@ -5,32 +5,38 @@
 <title>Arshi Market</title>
 </head>
 
-<body style="
-font-family:Arial;
-text-align:center;
-margin-top:60px;
-">
+<body style="text-align:center;margin-top:50px;font-family:Arial">
 
 <h2>Arshi Market</h2>
-<p>اختبار زر</p>
+<p>تسجيل الدخول</p>
 
 <button id="loginBtn"
-style="
-padding:15px 25px;
-font-size:18px;
-background:#4CAF50;
-color:white;
-border:none;
-border-radius:6px;
-cursor:pointer;
-">
-تسجيل الدخول
+style="padding:12px 20px;font-size:18px;">
+تسجيل الدخول عبر Google
 </button>
 
-<script>
-document.getElementById("loginBtn").onclick = function () {
-  alert("✅ الزر يعمل");
+<p id="status"></p>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithRedirect } 
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD3hAvhSds-1X7ORCORODDT31_S_gJA2o",
+  authDomain: "arshi-market.firebaseapp.com",
+  projectId: "arshi-market",
+  appId: "1:930764898688:web:06795817be840a68a01d9"
 };
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+
+document.getElementById("loginBtn").addEventListener("click", () => {
+  document.getElementById("status").innerText = "⏳ جاري التحويل إلى Google...";
+  signInWithRedirect(auth, provider);
+});
 </script>
 
 </body>
