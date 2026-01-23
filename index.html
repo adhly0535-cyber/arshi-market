@@ -28,21 +28,17 @@ button{
   background:#4285F4;
   color:#fff;
   border:none;
-  padding:12px 20px;
+  padding:12px;
+  width:100%;
   border-radius:5px;
   font-size:16px;
   cursor:pointer;
-  width:100%;
-}
-
-button:hover{
-  background:#357ae8;
 }
 
 #msg{
   margin-top:15px;
-  color:green;
   font-weight:bold;
+  color:green;
 }
 </style>
 </head>
@@ -54,41 +50,8 @@ button:hover{
   <div id="msg"></div>
 </div>
 
-<!-- Firebase -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-/* 🔴 ضع بيانات Firebase الخاصة بك */
-const firebaseConfig = {
-  apiKey: "API_KEY",
-  authDomain: "PROJECT_ID.firebaseapp.com",
-  projectId: "PROJECT_ID",
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const provider = new GoogleAuthProvider();
-
-const btn = document.getElementById("loginBtn");
-const msg = document.getElementById("msg");
-
-btn.onclick = async () => {
-  try{
-    await signInWithPopup(auth, provider);
-
-    msg.innerText = "✅ تم تسجيل الدخول بنجاح، جاري تحويلك...";
-    
-    setTimeout(()=>{
-      window.location.href = "home.html";
-    }, 1500);
-
-  }catch(e){
-    alert("❌ فشل تسجيل الدخول");
-    console.error(e);
-  }
-};
-</script>
+<!-- ربط ملف JavaScript -->
+<script type="module" src="auth.js"></script>
 
 </body>
 </html>
