@@ -50,8 +50,7 @@ button{
   <div id="msg"></div>
 </div>
 
-<!-- ربط ملف JavaScript -->
-<script type="module" src="auth.js"></script>
+<script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
   getAuth,
@@ -60,6 +59,7 @@ import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
+/* 🔴 ضع بيانات Firebase الحقيقية */
 const firebaseConfig = {
   apiKey: "API_KEY",
   authDomain: "PROJECT_ID.firebaseapp.com",
@@ -76,12 +76,12 @@ const provider = new GoogleAuthProvider();
 const loginBtn = document.getElementById("loginBtn");
 const msg = document.getElementById("msg");
 
-// عند الضغط → تحويل إلى Google
-loginBtn.addEventListener("click", () => {
+// زر تسجيل الدخول
+loginBtn.onclick = () => {
   signInWithRedirect(auth, provider);
-});
+};
 
-// مراقبة حالة تسجيل الدخول (الأهم)
+// بعد الرجوع من Google
 onAuthStateChanged(auth, (user) => {
   if (user) {
     msg.innerText = "✅ تم تسجيل الدخول بنجاح، جاري تحويلك...";
@@ -91,5 +91,7 @@ onAuthStateChanged(auth, (user) => {
     }, 1500);
   }
 });
+</script>
+
 </body>
 </html>
