@@ -59,7 +59,7 @@ import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-/* 🔴 ضع بيانات Firebase الحقيقية */
+/* 🔴 بيانات Firebase */
 const firebaseConfig = {
   apiKey: "API_KEY",
   authDomain: "PROJECT_ID.firebaseapp.com",
@@ -71,24 +71,29 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+
 const provider = new GoogleAuthProvider();
+/* 🔥 هذا السطر هو المفتاح */
+provider.setCustomParameters({
+  prompt: "select_account"
+});
 
 const loginBtn = document.getElementById("loginBtn");
 const msg = document.getElementById("msg");
 
-// زر تسجيل الدخول
-loginBtn.onclick = () => {
+/* ⬅️ ضغط = تحويل فوري إلى Google */
+loginBtn.addEventListener("click", () => {
   signInWithRedirect(auth, provider);
-};
+});
 
-// بعد الرجوع من Google
+/* ⬅️ بعد الرجوع من Google */
 onAuthStateChanged(auth, (user) => {
   if (user) {
     msg.innerText = "✅ تم تسجيل الدخول بنجاح، جاري تحويلك...";
 
     setTimeout(() => {
       window.location.href = "home.html";
-    }, 1500);
+    }, 1000);
   }
 });
 </script>
