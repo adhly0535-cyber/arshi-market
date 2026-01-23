@@ -3,7 +3,7 @@ import {
   getAuth,
   GoogleAuthProvider,
   signInWithRedirect,
-  getRedirectResult
+  onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const firebaseConfig = {
@@ -22,23 +22,18 @@ const provider = new GoogleAuthProvider();
 const loginBtn = document.getElementById("loginBtn");
 const msg = document.getElementById("msg");
 
-// عند الضغط على الزر → تحويل مباشر لغوغل
+// عند الضغط → تحويل إلى Google
 loginBtn.addEventListener("click", () => {
   signInWithRedirect(auth, provider);
 });
 
-// بعد الرجوع من Google
-getRedirectResult(auth)
-  .then((result) => {
-    if (result && result.user) {
-      msg.innerText = "✅ تم تسجيل الدخول بنجاح، جاري تحويلك...";
+// مراقبة حالة تسجيل الدخول (الأهم)
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    msg.innerText = "✅ تم تسجيل الدخول بنجاح، جاري تحويلك...";
 
-      setTimeout(() => {
-        window.location.href = "home.html";
-      }, 1500);
-    }
-  })
-  .catch((error) => {
-    console.error(error);
-    alert("❌ فشل تسجيل الدخول");
-  });
+    setTimeout(() => {
+      window.location.href = "home.html";
+    }, 200);
+  }
+});
