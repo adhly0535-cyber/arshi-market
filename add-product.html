@@ -113,22 +113,17 @@ if(category === "هواتف"){
   `;
 }
 
-/* النشر */
-document.getElementById("productForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
+/* النشر 
+publishBtn.addEventListener("click", async () => {
 
   const user = auth.currentUser;
   if (!user) {
     alert("❌ يجب تسجيل الدخول أولاً");
-    publishBtn.disabled = false;
-    publishBtn.innerText = "نشر المنتج";
     return;
   }
 
   if (!country) {
     alert("❌ يرجى اختيار الدولة");
-    publishBtn.disabled = false;
-    publishBtn.innerText = "نشر المنتج";
     return;
   }
 
