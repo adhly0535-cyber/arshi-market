@@ -7,34 +7,43 @@
 <body>
 
 <h2>تسجيل الدخول عبر Google</h2>
-
-<!-- مهم: type="button" -->
 <button id="loginBtn" type="button">تسجيل الدخول</button>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithRedirect,
+  getRedirectResult
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const firebaseConfig = {
-  apiKey: "ضع_apiKey_هنا",
-  authDomain: "ضع_authDomain_هنا",
-  projectId: "ضع_projectId_هنا",
+  apiKey: "API_KEY",
+  authDomain: "PROJECT_ID.firebaseapp.com",
+  projectId: "PROJECT_ID",
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
-document.getElementById("loginBtn").onclick = async () => {
-  try {
-    await signInWithPopup(auth, provider);
-    // لو نجح → ينتقل مباشرة
-    window.location.href = "country.html";
-  } catch (e) {
-    alert("فشل تسجيل الدخول");
-    console.log(e);
-  }
+// عند الضغط → تحويل
+document.getElementById("loginBtn").onclick = () => {
+  signInWithRedirect(auth, provider);
 };
+
+// بعد الرجوع من Google
+getRedirectResult(auth)
+  .then((result) => {
+    if (result && result.user) {
+      window.location.href = "country.html";
+    }
+  })
+  .catch((error) => {
+    alert("فشل تسجيل الدخول");
+    console.log(error);
+  });
 </script>
 
 </body>
