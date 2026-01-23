@@ -6,7 +6,7 @@ import {
   signInWithPopup 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-// 🔴 عدّل هذه القيم فقط من Firebase Console
+// 🔴 ضع بيانات Firebase الحقيقية
 const firebaseConfig = {
   apiKey: "API_KEY",
   authDomain: "PROJECT_ID.firebaseapp.com",
@@ -16,27 +16,28 @@ const firebaseConfig = {
   appId: "APP_ID"
 };
 
-// Initialize Firebase
+// تشغيل Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
-// زر تسجيل الدخول
+// عناصر الصفحة
 const loginBtn = document.getElementById("loginBtn");
+const msg = document.getElementById("msg");
 
+// عند الضغط على الزر
 loginBtn.addEventListener("click", async () => {
   try {
-    const result = await signInWithPopup(auth, provider);
-    const user = result.user;
+    await signInWithPopup(auth, provider);
 
-    console.log("تم تسجيل الدخول:", user);
-    alert("تم تسجيل الدخول بنجاح ✅");
+    msg.innerText = "✅ تم تسجيل الدخول بنجاح، جاري تحويلك...";
 
-    // تحويل لصفحة ثانية (اختياري)
-    // window.location.href = "home.html";
+    setTimeout(() => {
+      window.location.href = "home.html";
+    }, 1500);
 
   } catch (error) {
+    alert("❌ فشل تسجيل الدخول");
     console.error(error);
-    alert("خطأ في تسجيل الدخول ❌\n" + error.message);
   }
 });
