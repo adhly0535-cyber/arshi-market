@@ -142,8 +142,9 @@ form.addEventListener("submit", async (e) => {
       price: price.value,
       desc: desc.value,
       state: stateInput.value,
-      category,
-      country,
+      category: document.getElementById("category").value,
+country: localStorage.getItem("country"),
+      
       rooms: document.getElementById("rooms")?.value || "",
       area: document.getElementById("area")?.value || "",
       model: document.getElementById("model")?.value || "",
