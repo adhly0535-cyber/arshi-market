@@ -43,8 +43,6 @@ button:disabled{
     <option value="مستعمل">مستعمل</option>
   </select>
 
-  <input type="file" id="imagesInput" multiple accept="image/*" required>
-  <small>اختر من 1 إلى 5 صور</small>
 
   <div id="extraFields"></div>
 
@@ -57,7 +55,7 @@ button:disabled{
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
 
 /* Firebase */
 const firebaseConfig = {
@@ -70,7 +68,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
-const storage = getStorage(app);
+
 
 /* عناصر */
 const form = document.getElementById("productForm");
@@ -135,24 +133,10 @@ form.addEventListener("submit", async (e) => {
   publishBtn.innerText = "⏳ جاري النشر...";
 
   try {
-    const imagesInput = document.getElementById("imagesInput");
+    
 
-    if (imagesInput.files.length < 1 || imagesInput.files.length > 5) {
-      alert("❌ اختر من 1 إلى 5 صور");
-      throw new Error("عدد الصور غير صحيح");
-    }
-
-    const imageUrls = [];
-
-    for (const file of imagesInput.files) {
-      const imgRef = ref(
-        storage,
-        `products/${user.uid}/${Date.now()}_${file.name}`
-      );
-      await uploadBytes(imgRef, file);
-      const url = await getDownloadURL(imgRef);
-      imageUrls.push(url);
-    }
+    images: [],
+    
 
     await addDoc(collection(db, "products"), {
       title: title.value,
@@ -167,7 +151,7 @@ form.addEventListener("submit", async (e) => {
       year: document.getElementById("year")?.value || "",
       brand: document.getElementById("brand")?.value || "",
       phoneStorage: document.getElementById("phoneStorage")?.value || "",
-      images: imageUrls,
+      
       userId: user.uid,
       createdAt: serverTimestamp()
     });
