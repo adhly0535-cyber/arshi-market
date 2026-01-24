@@ -70,10 +70,13 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
-const firebaseStorage = getStorage(app);
+const storage = getStorage(app);
+
+/* عناصر */
+const form = document.getElementById("productForm");
+const publishBtn = document.getElementById("publishBtn");
 
 /* تأكيد تسجيل الدخول */
-const publishBtn = document.getElementById("publishBtn");
 publishBtn.disabled = true;
 
 onAuthStateChanged(auth, user=>{
@@ -113,8 +116,9 @@ if(category === "هواتف"){
   `;
 }
 
-/* النشر 
-publishBtn.addEventListener("click", async () => {
+/* النشر */
+form.addEventListener("submit", async (e) => {
+  e.preventDefault(); // ⛔ يمنع إعادة تحميل الصفحة
 
   const user = auth.currentUser;
   if (!user) {
@@ -142,7 +146,7 @@ publishBtn.addEventListener("click", async () => {
 
     for (const file of imagesInput.files) {
       const imgRef = ref(
-        firebaseStorage,
+        storage,
         `products/${user.uid}/${Date.now()}_${file.name}`
       );
       await uploadBytes(imgRef, file);
@@ -175,7 +179,10 @@ publishBtn.addEventListener("click", async () => {
     console.error(error);
     alert("❌ حدث خطأ أثناء النشر");
     publishBtn.disabled = false;
-    publishBtn.innerText = "نشر المنتج";
+    publishBtn.innerText = "📤 نشر المنتج";
   }
 });
-  
+</script>
+
+</body>
+</html>
