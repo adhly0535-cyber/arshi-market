@@ -3,6 +3,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebas
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 import { getFirestore, addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
+/* 🔹 إعدادات Firebase */
 const firebaseConfig = {
   apiKey: "API_KEY",
   authDomain: "PROJECT.firebaseapp.com",
@@ -13,42 +14,62 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const form = document.getElementById("productForm");
+/* 🔹 ننتظر الصفحة + تسجيل الدخول */
+document.addEventListener("DOMContentLoaded", () => {
 
-form.addEventListener("submit", async (e) => {
-  e.preventDefault();
-
-  const user = auth.currentUser;
-  if (!user) {
-    alert("❌ يجب تسجيل الدخول أولاً");
+  const form = document.getElementById("productForm");
+  if (!form) {
+    alert("❌ الفورم غير موجود");
     return;
   }
 
-  const name = document.getElementById("name").value.trim();
-  const price = document.getElementById("price").value.trim();
-  const category = document.getElementById("category").value;
-  const country = localStorage.getItem("country");
+  let currentUser = null;
 
-  if (!name || !price || !category) {
-    alert("❌ أكمل كل الحقول");
-    return;
-  }
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      currentUser = user;
+    } else {
+      alert("❌ يجب تسجيل الدخول أولاً");
+      window.location.href = "index.html";
+    }
+  });
 
-  try {
-    await addDoc(collection(db, "products"), {
-      name,
-      price,
-      category,
-      country,
-      userId: user.uid,
-      createdAt: serverTimestamp()
-    });
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-    alert("✅ تم نشر المنتج");
-    window.location.href = "products.html";
+    if (!currentUser) {
+      alert("❌ لم يتم تسجيل الدخول");
+      return;
+    }
 
-  } catch (err) {
-    alert("❌ خطأ: " + err.message);
-  }
+    const name = document.getElementById("name").value.trim();
+    const price = document.getElementById("price").value.trim();
+    const category = document.getElementById("category").value;
+    const country = localStorage.getItem("country") || "";
+
+    if (!name || !price || !category) {
+      alert("❌ أكمل كل الحقول");
+      return;
+    }
+
+    try {
+      await addDoc(collection(db, "products"), {
+        name: name,
+        price: Number(price),
+        category: category,
+        country: country,
+        userId: currentUser.uid,
+        createdAt: serverTimestamp()
+      });
+
+      alert("✅ تم نشر المنتج بنجاح");
+      window.location.href = "products.html";
+
+    } catch (error) {
+      console.error(error);
+      alert("❌ فشل النشر: " + error.message);
+    }
+  });
+
 });
     </script>
