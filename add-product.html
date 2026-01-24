@@ -1,175 +1,54 @@
-<!DOCTYPE html>
-<html lang="ar">
-<head>
-<meta charset="UTF-8">
-<title>إضافة منتج</title>
-
-<style>
-body{
-  font-family:Arial;
-  background:#f5f5f5;
-  padding:10px;
-}
-input, textarea, button, select{
-  width:100%;
-  margin:6px 0;
-  padding:10px;
-  font-size:14px;
-}
-button{
-  background:#4CAF50;
-  color:#fff;
-  border:none;
-  border-radius:6px;
-}
-button:disabled{
-  opacity:0.6;
-}
-</style>
-</head>
-
-<body>
-
-<h3 id="pageTitle"></h3>
-
-<form id="productForm">
-
-  <input id="title" placeholder="عنوان الإعلان" required>
-  <input id="price" placeholder="السعر" required>
-
-  <select id="stateInput" required>
-    <option value="">الحالة</option>
-    <option value="جديد">جديد</option>
-    <option value="مستعمل">مستعمل</option>
-  </select>
-
-  <div id="extraFields"></div>
-
-  <textarea id="desc" placeholder="الوصف" required></textarea>
-
-  <button type="submit" id="publishBtn">📤 نشر المنتج</button>
-</form>
-
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+import { getFirestore, addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-/* Firebase */
 const firebaseConfig = {
-  apiKey: "AIzaSyD3hAvhSDs-lX7ORCOR0DODT3l_S_gJA2o",
-  authDomain: "arshi-market.firebaseapp.com",
-  projectId: "arshi-market",
+  apiKey: "API_KEY",
+  authDomain: "PROJECT.firebaseapp.com",
+  projectId: "PROJECT_ID",
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
-/* عناصر */
 const form = document.getElementById("productForm");
-const publishBtn = document.getElementById("publishBtn");
 
-const titleInput = document.getElementById("title");
-const priceInput = document.getElementById("price");
-const descInput  = document.getElementById("desc");
-const stateInput = document.getElementById("stateInput");
-
-/* المستخدم */
-let currentUser = null;
-publishBtn.disabled = true;
-
-onAuthStateChanged(auth, user=>{
-  if(user){
-    currentUser = user;
-    publishBtn.disabled = false;
-  }else{
-    publishBtn.disabled = true;
-    alert("❌ يجب تسجيل الدخول أولاً");
-  }
-});
-
-/* التصنيف + الدولة */
-const params = new URLSearchParams(window.location.search);
-const category = params.get("cat");
-const country = localStorage.getItem("country");
-
-document.getElementById("pageTitle").innerText = "إضافة " + category;
-
-/* الحقول حسب التصنيف */
-const extra = document.getElementById("extraFields");
-
-if(category === "بيوت"){
-  extra.innerHTML = `
-    <input id="rooms" placeholder="عدد الغرف">
-    <input id="area" placeholder="المساحة">
-  `;
-}
-if(category === "سيارات"){
-  extra.innerHTML = `
-    <input id="model" placeholder="الموديل">
-    <input id="year" placeholder="سنة الصنع">
-  `;
-}
-if(category === "هواتف"){
-  extra.innerHTML = `
-    <input id="brand" placeholder="الشركة">
-    <input id="phoneStorage" placeholder="المساحة">
-  `;
-}
-
-/* النشر */
-form.addEventListener("submit", async (e)=>{
+form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  if(!currentUser){
-    alert("❌ يجب تسجيل الدخول");
+  const user = auth.currentUser;
+  if (!user) {
+    alert("❌ يجب تسجيل الدخول أولاً");
     return;
   }
 
-  if(!country){
-    alert("❌ اختر الدولة");
+  const name = document.getElementById("name").value.trim();
+  const price = document.getElementById("price").value.trim();
+  const category = document.getElementById("category").value;
+  const country = localStorage.getItem("country");
+
+  if (!name || !price || !category) {
+    alert("❌ أكمل كل الحقول");
     return;
   }
 
-  if(isNaN(priceInput.value) || priceInput.value.trim() === ""){
-    alert("❌ السعر يجب أن يكون رقم");
-    return;
-  }
-
-  publishBtn.disabled = true;
-  publishBtn.innerText = "⏳ جاري النشر...";
-
-  try{
+  try {
     await addDoc(collection(db, "products"), {
-      title: titleInput.value.trim(),
-      price: Number(priceInput.value),
-      desc: descInput.value.trim(),
-      state: stateInput.value,
+      name,
+      price,
       category,
       country,
-      rooms: document.getElementById("rooms")?.value || "",
-      area: document.getElementById("area")?.value || "",
-      model: document.getElementById("model")?.value || "",
-      year: document.getElementById("year")?.value || "",
-      brand: document.getElementById("brand")?.value || "",
-      phoneStorage: document.getElementById("phoneStorage")?.value || "",
-      images: [],
-      userId: currentUser.uid,
+      userId: user.uid,
       createdAt: serverTimestamp()
     });
 
     alert("✅ تم نشر المنتج");
     window.location.href = "products.html";
 
-  }catch(err){
-    console.error(err);
-    alert("❌ فشل النشر");
-    publishBtn.disabled = false;
-    publishBtn.innerText = "📤 نشر المنتج";
+  } catch (err) {
+    alert("❌ خطأ: " + err.message);
   }
 });
-</script>
-
-</body>
-</html>
+    </script>
