@@ -43,9 +43,6 @@ button:disabled{
     <option value="مستعمل">مستعمل</option>
   </select>
 
-  <input type="file" id="imagesInput" multiple accept="image/*">
-  <small>الصور اختيارية (حتى 5)</small>
-
   <div id="extraFields"></div>
 
   <textarea id="desc" placeholder="الوصف" required></textarea>
@@ -57,20 +54,17 @@ button:disabled{
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 /* Firebase */
 const firebaseConfig = {
   apiKey: "AIzaSyD3hAvhSDs-lX7ORCOR0DODT3l_S_gJA2o",
   authDomain: "arshi-market.firebaseapp.com",
   projectId: "arshi-market",
-  storageBucket: "arshi-market.appspot.com",
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
-const storage = getStorage(app);
 
 /* عناصر */
 const form = document.getElementById("productForm");
@@ -80,7 +74,6 @@ const titleInput = document.getElementById("title");
 const priceInput = document.getElementById("price");
 const descInput  = document.getElementById("desc");
 const stateInput = document.getElementById("stateInput");
-const imagesInput = document.getElementById("imagesInput");
 
 /* المستخدم */
 let currentUser = null;
@@ -91,7 +84,6 @@ onAuthStateChanged(auth, user=>{
     currentUser = user;
     publishBtn.disabled = false;
   }else{
-    currentUser = null;
     publishBtn.disabled = true;
     alert("❌ يجب تسجيل الدخول أولاً");
   }
@@ -149,27 +141,6 @@ form.addEventListener("submit", async (e)=>{
   publishBtn.innerText = "⏳ جاري النشر...";
 
   try{
-    const imageUrls = [];
-
-    if(imagesInput.files.length > 0){
-      if(imagesInput.files.length > 5){
-        alert("❌ الحد الأقصى 5 صور");
-        publishBtn.disabled = false;
-        publishBtn.innerText = "📤 نشر المنتج";
-        return;
-      }
-
-      for(const file of imagesInput.files){
-        const imgRef = ref(
-          storage,
-          `products/${currentUser.uid}/${Date.now()}_${file.name}`
-        );
-        await uploadBytes(imgRef, file);
-        const url = await getDownloadURL(imgRef);
-        imageUrls.push(url);
-      }
-    }
-
     await addDoc(collection(db, "products"), {
       title: titleInput.value.trim(),
       price: Number(priceInput.value),
@@ -183,7 +154,7 @@ form.addEventListener("submit", async (e)=>{
       year: document.getElementById("year")?.value || "",
       brand: document.getElementById("brand")?.value || "",
       phoneStorage: document.getElementById("phoneStorage")?.value || "",
-      images: imageUrls,
+      images: [],
       userId: currentUser.uid,
       createdAt: serverTimestamp()
     });
