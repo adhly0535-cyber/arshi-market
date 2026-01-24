@@ -81,8 +81,8 @@ const db = getFirestore(app);
 
 let user = null;
 
-onAuthStateChanged(auth,u=>{
-  if(!u) location.replace("index.html");
+// ✅ فقط نتحقق بدون أي تحويل
+onAuthStateChanged(auth, (u)=>{
   user = u;
 });
 
@@ -102,6 +102,12 @@ category.onchange = ()=>{
 
 document.getElementById("productForm").onsubmit = async (e)=>{
   e.preventDefault();
+
+  // ⛔ منع النشر فقط (بدون تحويل)
+  if(!user){
+    alert("❌ يجب تسجيل الدخول قبل النشر");
+    return;
+  }
 
   const name = document.getElementById("name").value.trim();
   const price = +document.getElementById("price").value;
