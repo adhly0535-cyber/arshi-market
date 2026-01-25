@@ -58,13 +58,6 @@ body{
   font-size:13px;
 }
 
-.main-img{
-  width:100%;
-  height:90px;
-  object-fit:cover;
-  border-radius:8px;
-}
-
 .bottom-nav{
   position:fixed;
   bottom:0;
@@ -74,13 +67,6 @@ body{
   justify-content:space-around;
   padding:10px 0;
   border-top:1px solid #ccc;
-}
-
-.bottom-nav button{
-  background:none;
-  border:none;
-  font-size:14px;
-  cursor:pointer;
 }
 </style>
 </head>
@@ -95,7 +81,6 @@ body{
   <button onclick="selectCategory('هواتف')">📱 هواتف</button>
   <button onclick="selectCategory('أخرى')">➕ أخرى</button>
 
-  <!-- اختيار الولاية -->
   <select id="stateFilter" onchange="changeState()">
     <option value="">كل الولايات</option>
   </select>
@@ -105,18 +90,10 @@ body{
 
 <div class="products" id="products"></div>
 
-<div class="bottom-nav">
-  <button onclick="go('products.html')">🏠<br>الرئيسية</button>
-  <button onclick="go('chat.html')">💬<br>الشات</button>
-  <button onclick="go('account.html')">👤<br>الحساب</button>
-  <button onclick="go('settings.html')">⚙️<br>الإعدادات</button>
-</div>
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* Firebase */
 const firebaseConfig = {
   apiKey: "AIzaSyD3hAvhSDs-lX7ORCOR0DODT3l_S_gJA2o",
   authDomain: "arshi-market.firebaseapp.com",
@@ -128,60 +105,67 @@ const db = getFirestore(app);
 
 /* الدولة */
 const country = localStorage.getItem("country");
-if(!country){
-  window.location.href = "country.html";
-}
+if(!country) location.href = "country.html";
 
 const countryName = document.getElementById("countryName");
 countryName.innerText = "📍 الدولة: " + country;
-countryName.onclick = ()=> window.location.href="country.html";
+countryName.onclick = ()=> location.href="country.html";
 
-/* الولايات (مثال السودان) */
+/* الولايات الرسمية (قابلة للتوسعة) */
 const statesByCountry = {
-  "السودان": ["الخرطوم","مدني","كوستي","عطبرة","الفاشر"],
-  "السعودية": ["الرياض","جدة","مكة","الدمام"],
-  "مصر": ["القاهرة","الجيزة","الإسكندرية"]
+  "السودان": [
+    "الخرطوم","الجزيرة","نهر النيل","البحر الأحمر",
+    "كسلا","القضارف","سنار","النيل الأبيض",
+    "شمال كردفان","جنوب كردفان","شمال دارفور",
+    "جنوب دارفور","غرب دارفور","وسط دارفور","شرق دارفور"
+  ],
+  "مصر": [
+    "القاهرة","الجيزة","الإسكندرية","الدقهلية",
+    "الشرقية","المنوفية","القليوبية","الغربية"
+  ],
+  "السعودية": [
+    "الرياض","مكة المكرمة","المدينة المنورة",
+    "المنطقة الشرقية","عسير","جازان","تبوك","حائل"
+  ],
+  "الأردن": [
+    "عمان","إربد","الزرقاء","البلقاء","الكرك","معان","العقبة"
+  ],
+  "الإمارات": [
+    "أبوظبي","دبي","الشارقة","عجمان","رأس الخيمة","الفجيرة","أم القيوين"
+  ]
 };
 
+/* تحميل الولايات */
 const stateSelect = document.getElementById("stateFilter");
-if(statesByCountry[country]){
-  statesByCountry[country].forEach(s=>{
-    const opt = document.createElement("option");
-    opt.value = s;
-    opt.textContent = s;
-    stateSelect.appendChild(opt);
-  });
-}
+(statesByCountry[country] || []).forEach(s=>{
+  const opt = document.createElement("option");
+  opt.value = s;
+  opt.textContent = s;
+  stateSelect.appendChild(opt);
+});
 
 /* المنتجات */
 let allProducts = [];
 let currentCategory = "";
 let currentState = "";
 
-/* جلب المنتجات */
-onSnapshot(collection(db,"products"), snapshot=>{
-  allProducts = [];
-  snapshot.forEach(doc=>{
-    allProducts.push(doc.data());
-  });
+onSnapshot(collection(db,"products"), snap=>{
+  allProducts = snap.docs.map(d=>d.data());
   showProducts();
 });
 
-/* اختيار التصنيف */
-window.selectCategory = function(cat){
+window.selectCategory = cat=>{
   currentCategory = cat;
   localStorage.setItem("addCategory", cat);
   document.getElementById("addBtn").style.display = "inline-block";
   showProducts();
 };
 
-/* تغيير الولاية */
-window.changeState = function(){
+window.changeState = ()=>{
   currentState = stateSelect.value;
   showProducts();
 };
 
-/* عرض المنتجات */
 function showProducts(){
   const box = document.getElementById("products");
   box.innerHTML = "";
@@ -200,26 +184,19 @@ function showProducts(){
   filtered.forEach(p=>{
     box.innerHTML += `
       <div class="product-card">
-        <p>${p.title || ''}</p>
-        <b>${p.price || ''}</b>
-        <small>${p.state || ''}</small>
+        <p>${p.title}</p>
+        <b>${p.price}</b>
+        <small>${p.state}</small>
       </div>
     `;
   });
 }
 
-/* إضافة منتج */
-window.goAddProduct = function(){
+window.goAddProduct = ()=>{
   const cat = localStorage.getItem("addCategory");
-  if(!cat){
-    alert("❌ اختر تصنيف أولاً");
-    return;
-  }
-  window.location.href = `add-product.html?cat=${encodeURIComponent(cat)}`;
+  if(!cat) return alert("اختر تصنيف أولاً");
+  location.href = `add-product.html?cat=${encodeURIComponent(cat)}`;
 };
-
-/* تنقل */
-window.go = p => window.location.href = p;
 </script>
 
 </body>
