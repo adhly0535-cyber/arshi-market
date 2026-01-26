@@ -12,32 +12,15 @@ body{
   background:#f5f5f5;
 }
 
-/* اسم الدولة */
 .country-name{
   background:#4CAF50;
   color:#fff;
   text-align:center;
-  padding:10px;
+  padding:8px;
   font-weight:bold;
   cursor:pointer;
 }
 
-/* اختيار الولاية */
-.state-box{
-  background:#fff;
-  padding:10px;
-  text-align:center;
-  border-bottom:1px solid #ddd;
-}
-
-.state-box select{
-  padding:8px 14px;
-  border-radius:20px;
-  border:1px solid #ccc;
-  background:#f0f0f0;
-}
-
-/* التصنيفات */
 .categories{
   display:flex;
   gap:8px;
@@ -55,13 +38,35 @@ body{
   white-space:nowrap;
 }
 
+.states{
+  display:flex;
+  gap:8px;
+  padding:10px;
+  background:#fff;
+  overflow-x:auto;
+  border-top:1px solid #eee;
+}
+
+.states button{
+  border:none;
+  background:#ddd;
+  padding:6px 14px;
+  border-radius:20px;
+  cursor:pointer;
+  font-size:13px;
+}
+
+.states button.active{
+  background:#4CAF50;
+  color:#fff;
+}
+
 #addBtn{
   display:none;
   background:#4CAF50;
   color:#fff;
 }
 
-/* المنتجات */
 .products{
   padding:10px;
   display:grid;
@@ -82,13 +87,7 @@ body{
 
 <div class="country-name" id="countryName"></div>
 
-<!-- اختيار الولاية (ثابت) -->
-<div class="state-box">
-  <select id="stateFilter">
-    <option value="">كل الولايات</option>
-  </select>
-</div>
-
+<!-- التصنيفات -->
 <div class="categories">
   <button onclick="selectCategory('سيارات')">🚗 سيارات</button>
   <button onclick="selectCategory('بيوت')">🏠 بيوت</button>
@@ -98,6 +97,10 @@ body{
   <button id="addBtn" onclick="goAddProduct()">➕ إضافة منتج</button>
 </div>
 
+<!-- الولايات -->
+<div class="states" id="statesBox"></div>
+
+<!-- المنتجات -->
 <div class="products" id="products"></div>
 
 <script type="module">
@@ -122,52 +125,53 @@ const countryName = document.getElementById("countryName");
 countryName.innerText = "📍 الدولة: " + country;
 countryName.onclick = ()=> location.href="country.html";
 
-/* الولايات الرسمية (سودان + مصر فقط) */
+/* الولايات (سودان + مصر فقط) */
 const statesByCountry = {
   "السودان": [
     "الخرطوم","الجزيرة","نهر النيل","البحر الأحمر",
     "كسلا","القضارف","سنار","النيل الأبيض",
     "شمال كردفان","جنوب كردفان",
-    "شمال دارفور","جنوب دارفور",
-    "غرب دارفور","وسط دارفور","شرق دارفور"
+    "شمال دارفور","جنوب دارفور","غرب دارفور"
   ],
+
   "مصر": [
-    "القاهرة","الجيزة","الإسكندرية","الدقهلية",
-    "الشرقية","المنوفية","القليوبية","الغربية",
-    "كفر الشيخ","البحيرة","الفيوم","بني سويف",
-    "المنيا","أسيوط","سوهاج","قنا","الأقصر",
-    "أسوان","البحر الأحمر","الوادي الجديد",
-    "مطروح","شمال سيناء","جنوب سيناء","الإسماعيلية","السويس","بورسعيد"
+    "القاهرة","الجيزة","الإسكندرية","الدقهلية","الشرقية",
+    "القليوبية","كفر الشيخ","الغربية","المنوفية","البحيرة",
+    "دمياط","بورسعيد","الإسماعيلية","السويس",
+    "شمال سيناء","جنوب سيناء",
+    "الفيوم","بني سويف","المنيا","أسيوط","سوهاج",
+    "قنا","الأقصر","أسوان",
+    "البحر الأحمر","الوادي الجديد","مطروح"
   ]
 };
 
-/* تحميل الولايات حسب الدولة */
-const stateSelect = document.getElementById("stateFilter");
-(statesByCountry[country] || []).forEach(s=>{
-  const opt = document.createElement("option");
-  opt.value = s;
-  opt.textContent = s;
-  stateSelect.appendChild(opt);
-});
 
-/* المتغيرات */
-let allProducts = [];
-let currentCategory = "";
+/* عرض الولايات */
+const statesBox = document.getElementById("statesBox");
 let currentState = "";
 
-/* تغيير الولاية */
-stateSelect.onchange = ()=>{
-  currentState = stateSelect.value;
-  showProducts();
-};
+(statesByCountry[country] || []).forEach(state=>{
+  const btn = document.createElement("button");
+  btn.textContent = state;
+  btn.onclick = ()=>{
+    document.querySelectorAll(".states button")
+      .forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    currentState = state;
+    showProducts();
+  };
+  statesBox.appendChild(btn);
+});
 
-/* جلب المنتجات */
+/* المنتجات */
+let allProducts = [];
+let currentCategory = "";
+
 onSnapshot(collection(db,"products"), snap=>{
   allProducts = snap.docs.map(d=>d.data());
   showProducts();
 });
 
-/* اختيار تصنيف */
 window.selectCategory = cat=>{
   currentCategory = cat;
   localStorage.setItem("addCategory", cat);
@@ -175,7 +179,6 @@ window.selectCategory = cat=>{
   showProducts();
 };
 
-/* عرض المنتجات */
 function showProducts(){
   const box = document.getElementById("products");
   box.innerHTML = "";
@@ -194,15 +197,14 @@ function showProducts(){
   filtered.forEach(p=>{
     box.innerHTML += `
       <div class="product-card">
-        <p>${p.title || ''}</p>
-        <b>${p.price || ''}</b>
-        <small>${p.state || ''}</small>
+        <p>${p.title || ""}</p>
+        <b>${p.price || ""}</b>
+        <small>${p.state || ""}</small>
       </div>
     `;
   });
 }
 
-/* إضافة منتج */
 window.goAddProduct = ()=>{
   const cat = localStorage.getItem("addCategory");
   if(!cat) return alert("اختر تصنيف أولاً");
