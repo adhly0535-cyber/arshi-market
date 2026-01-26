@@ -8,7 +8,7 @@
 body{
   font-family: Arial;
   margin:0;
-  padding-bottom:70px;
+  padding-bottom:80px;
   background:#f5f5f5;
 }
 
@@ -38,8 +38,13 @@ body{
   white-space:nowrap;
 }
 
+.categories button.active{
+  background:#4CAF50;
+  color:#fff;
+}
+
 .states{
-  display:flex;
+  display:none;
   gap:8px;
   padding:10px;
   background:#fff;
@@ -61,23 +66,49 @@ body{
   color:#fff;
 }
 
-#addBtn{
-  display:none;
-  background:#4CAF50;
-  color:#fff;
-}
-
 .products{
   padding:10px;
   display:grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap:10px;
 }
 
 .product-card{
   background:#fff;
-  padding:6px;
+  padding:8px;
   border-radius:10px;
+  font-size:13px;
+}
+
+.product-card b{
+  color:#4CAF50;
+}
+
+.product-card .chat-btn{
+  margin-top:6px;
+  width:100%;
+  background:#4CAF50;
+  color:#fff;
+  border:none;
+  padding:6px;
+  border-radius:6px;
+  cursor:pointer;
+  font-size:13px;
+}
+
+.bottom-nav{
+  position:fixed;
+  bottom:0;
+  width:100%;
+  background:#fff;
+  display:flex;
+  justify-content:space-around;
+  padding:8px 0;
+  border-top:1px solid #ccc;
+}
+.bottom-nav button{
+  background:none;
+  border:none;
   font-size:13px;
 }
 </style>
@@ -89,12 +120,10 @@ body{
 
 <!-- التصنيفات -->
 <div class="categories">
-  <button onclick="selectCategory('سيارات')">🚗 سيارات</button>
-  <button onclick="selectCategory('بيوت')">🏠 بيوت</button>
-  <button onclick="selectCategory('هواتف')">📱 هواتف</button>
-  <button onclick="selectCategory('أخرى')">➕ أخرى</button>
-
-  <button id="addBtn" onclick="goAddProduct()">➕ إضافة منتج</button>
+  <button onclick="selectCategory(this,'سيارات')">🚗 سيارات</button>
+  <button onclick="selectCategory(this,'عقارات')">🏢 عقارات</button>
+  <button onclick="selectCategory(this,'وظائف')">🧑‍💼 وظائف</button>
+  <button onclick="selectCategory(this,'هواتف + حواسيب')">📱💻 هواتف + حواسيب</button>
 </div>
 
 <!-- الولايات -->
@@ -103,11 +132,18 @@ body{
 <!-- المنتجات -->
 <div class="products" id="products"></div>
 
+<!-- شريط التنقل -->
+<div class="bottom-nav">
+  <button onclick="go('products.html')">🏠<br>الرئيسية</button>
+  <button onclick="go('chat.html')">💬<br>الشات</button>
+  <button onclick="go('account.html')">👤<br>الحساب</button>
+  <button onclick="go('settings.html')">⚙️<br>الإعدادات</button>
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* Firebase */
 const firebaseConfig = {
   apiKey: "AIzaSyD3hAvhSDs-lX7ORCOR0DODT3l_S_gJA2o",
   authDomain: "arshi-market.firebaseapp.com",
@@ -119,109 +155,86 @@ const db = getFirestore(app);
 
 /* الدولة */
 const country = localStorage.getItem("country");
-if(!country) location.href = "country.html";
+if(!country) location.href="country.html";
 
-const countryName = document.getElementById("countryName");
-countryName.innerText = "📍 الدولة: " + country;
-countryName.onclick = ()=> location.href="country.html";
+document.getElementById("countryName").innerText = "📍 الدولة: " + country;
 
-/* الولايات (سودان + مصر فقط) */
+/* الولايات */
 const statesByCountry = {
-  "السودان": [
-    "الخرطوم","الجزيرة","نهر النيل","البحر الأحمر",
-    "كسلا","القضارف","سنار","النيل الأبيض",
-    "شمال كردفان","جنوب كردفان",
+  "السودان":[
+    "الخرطوم","الجزيرة","نهر النيل","البحر الأحمر","كسلا","القضارف",
+    "سنار","النيل الأبيض","شمال كردفان","جنوب كردفان",
     "شمال دارفور","جنوب دارفور","غرب دارفور"
   ],
-
-  "مصر": [
-    "القاهرة","الجيزة","الإسكندرية","الدقهلية","الشرقية",
-    "القليوبية","كفر الشيخ","الغربية","المنوفية","البحيرة",
-    "دمياط","بورسعيد","الإسماعيلية","السويس",
-    "شمال سيناء","جنوب سيناء",
-    "الفيوم","بني سويف","المنيا","أسيوط","سوهاج",
-    "قنا","الأقصر","أسوان",
-    "البحر الأحمر","الوادي الجديد","مطروح"
+  "مصر":[
+    "القاهرة","الجيزة","الإسكندرية","الدقهلية","الشرقية","القليوبية",
+    "كفر الشيخ","الغربية","المنوفية","البحيرة","دمياط","بورسعيد",
+    "الإسماعيلية","السويس","الفيوم","المنيا","أسيوط","سوهاج",
+    "قنا","الأقصر","أسوان","مطروح","الوادي الجديد","شمال سيناء","جنوب سيناء"
   ]
 };
 
-
-/* عرض الولايات */
 const statesBox = document.getElementById("statesBox");
-let currentState = "";
+let currentState="", currentCategory="";
 
-(statesByCountry[country] || []).forEach(state=>{
-  const btn = document.createElement("button");
-  btn.textContent = state;
-  btn.onclick = ()=>{
-    document.querySelectorAll(".states button")
-      .forEach(b=>b.classList.remove("active"));
-    btn.classList.add("active");
-    currentState = state;
+/* تحميل الولايات */
+(statesByCountry[country]||[]).forEach(s=>{
+  const b=document.createElement("button");
+  b.textContent=s;
+  b.onclick=()=>{
+    document.querySelectorAll(".states button").forEach(x=>x.classList.remove("active"));
+    b.classList.add("active");
+    currentState=s;
     showProducts();
   };
-  statesBox.appendChild(btn);
+  statesBox.appendChild(b);
 });
 
 /* المنتجات */
-let allProducts = [];
-let currentCategory = "";
-
-onSnapshot(collection(db,"products"), snap=>{
-  allProducts = snap.docs.map(d=>d.data());
+let allProducts=[];
+onSnapshot(collection(db,"products"),snap=>{
+  allProducts=snap.docs.map(d=>d.data());
   showProducts();
 });
 
-window.selectCategory = cat=>{
-  currentCategory = cat;
-  localStorage.setItem("addCategory", cat);
-  document.getElementById("addBtn").style.display = "inline-block";
+window.selectCategory=(btn,cat)=>{
+  document.querySelectorAll(".categories button").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  currentCategory=cat;
+  statesBox.style.display="flex";
   showProducts();
 };
 
 function showProducts(){
-  const box = document.getElementById("products");
-  box.innerHTML = "";
-
-  const filtered = allProducts.filter(p =>
-    p.country === country &&
-    (!currentCategory || p.category === currentCategory) &&
-    (!currentState || p.state === currentState)
+  const box=document.getElementById("products");
+  box.innerHTML="";
+  const filtered=allProducts.filter(p=>
+    p.country===country &&
+    (!currentCategory||p.category===currentCategory) &&
+    (!currentState||p.state===currentState)
   );
 
   if(!filtered.length){
-    box.innerHTML = "<p>لا توجد منتجات</p>";
+    box.innerHTML="<p>لا توجد منتجات</p>";
     return;
   }
 
   filtered.forEach(p=>{
-    box.innerHTML += `
-      <div class="product-card">
-        <p>${p.title || ""}</p>
-        <b>${p.price || ""}</b>
-        <small>${p.state || ""}</small>
-      </div>
-    `;
+    box.innerHTML+=`
+    <div class="product-card">
+      <p><b>${p.title||""}</b></p>
+      <p>${p.category||""}</p>
+      <p>${p.state||""}</p>
+      <b>${p.price||""}</b>
+      ${p.ownerId ? `<button class="chat-btn" onclick="go('chat.html')">💬 مراسلة</button>`:""}
+    </div>`;
   });
 }
-
-window.goAddProduct = ()=>{
-  const cat = localStorage.getItem("addCategory");
-  if(!cat) return alert("اختر تصنيف أولاً");
-  location.href = `add-product.html?cat=${encodeURIComponent(cat)}`;
-};
 </script>
-<div class="bottom-nav">
-  <button onclick="go('products.html')">🏠<br>الرئيسية</button>
-  <button onclick="go('chat.html')">💬<br>الشات</button>
-  <button onclick="go('account.html')">👤<br>الحساب</button>
-  <button onclick="go('settings.html')">⚙️<br>الإعدادات</button>
-</div>
 
 <script>
-function go(page){
-  location.href = page;
-}
+function go(p){ location.href=p; }
 </script>
+
 </body>
 </html>
