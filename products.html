@@ -211,6 +211,17 @@ window.goAddProduct = ()=>{
   location.href = `add-product.html?cat=${encodeURIComponent(cat)}`;
 };
 </script>
+<div class="bottom-nav">
+  <button onclick="go('products.html')">🏠<br>الرئيسية</button>
+  <button onclick="go('chat.html')">💬<br>الشات</button>
+  <button onclick="go('account.html')">👤<br>الحساب</button>
+  <button onclick="go('settings.html')">⚙️<br>الإعدادات</button>
+</div>
 
+<script>
+function go(page){
+  location.href = page;
+}
+</script>
 </body>
 </html>
