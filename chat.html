@@ -14,7 +14,6 @@ body{
   flex-direction:column;
   height:100vh;
 }
-
 .header{
   background:#4CAF50;
   color:#fff;
@@ -22,13 +21,11 @@ body{
   text-align:center;
   font-weight:bold;
 }
-
 .chat-box{
   flex:1;
   padding:10px;
   overflow-y:auto;
 }
-
 .message{
   max-width:70%;
   margin-bottom:10px;
@@ -36,33 +33,28 @@ body{
   border-radius:15px;
   font-size:14px;
 }
-
 .me{
   background:#4CAF50;
   color:#fff;
   margin-left:auto;
 }
-
 .other{
   background:#fff;
   color:#000;
   margin-right:auto;
 }
-
 .input-bar{
   display:flex;
   padding:8px;
   background:#fff;
   border-top:1px solid #ccc;
 }
-
 .input-bar input{
   flex:1;
   padding:10px;
   border-radius:20px;
   border:1px solid #ccc;
 }
-
 .input-bar button{
   background:#4CAF50;
   color:#fff;
@@ -110,6 +102,16 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+/* ====== المهم هنا ====== */
+// chatId يأتي من الرابط
+// مثال: chat.html?chatId=PRODUCTID_BUYERID_SELLERID
+const chatId = new URLSearchParams(location.search).get("chatId");
+
+if(!chatId){
+  alert("لا يوجد شات");
+  location.href = "products.html";
+}
+
 let currentUser;
 
 /* تحقق من المستخدم */
@@ -123,10 +125,10 @@ onAuthStateChanged(auth, user=>{
   loadMessages();
 });
 
-/* تحميل الرسائل */
+/* تحميل الرسائل (شات حقيقي) */
 function loadMessages(){
   const q = query(
-    collection(db,"messages"),
+    collection(db,"chats",chatId,"messages"),
     orderBy("time")
   );
 
@@ -153,11 +155,14 @@ window.sendMsg = async ()=>{
   const text = input.value.trim();
   if(!text) return;
 
-  await addDoc(collection(db,"messages"),{
-    text,
-    uid: currentUser.uid,
-    time: Date.now()
-  });
+  await addDoc(
+    collection(db,"chats",chatId,"messages"),
+    {
+      text,
+      uid: currentUser.uid,
+      time: Date.now()
+    }
+  );
 
   input.value = "";
 };
