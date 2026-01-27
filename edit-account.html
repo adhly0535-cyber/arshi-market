@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>تعديل الحساب</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  background:#f5f5f5;
+  direction:rtl;
+}
+.header{
+  background:#4CAF50;
+  color:#fff;
+  padding:15px;
+  text-align:center;
+  font-size:18px;
+  font-weight:bold;
+}
+.box{
+  background:#fff;
+  margin:15px;
+  padding:15px;
+  border-radius:10px;
+}
+.box label{
+  display:block;
+  margin-bottom:6px;
+  font-size:14px;
+}
+.box input{
+  width:100%;
+  padding:10px;
+  margin-bottom:12px;
+  font-size:14px;
+}
+.box button{
+  width:100%;
+  background:#4CAF50;
+  color:#fff;
+  border:none;
+  padding:12px;
+  font-size:15px;
+  border-radius:8px;
+  cursor:pointer;
+}
+.preview{
+  text-align:center;
+  margin-bottom:10px;
+}
+.preview img{
+  width:90px;
+  height:90px;
+  border-radius:50%;
+  object-fit:cover;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">✏️ تعديل الحساب</div>
+
+<div class="box">
+
+  <div class="preview">
+    <img id="previewImg" src="https://via.placeholder.com/150">
+  </div>
+
+  <label>الاسم</label>
+  <input id="nameInput" placeholder="اكتب اسمك">
+
+  <label>رابط الصورة (اختياري)</label>
+  <input id="photoInput" placeholder="https://example.com/photo.jpg">
+
+  <button id="saveBtn">💾 حفظ</button>
+
+</div>
+
+<script type="module">
+import { initializeApp } from
+"https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+
+import { getAuth, onAuthStateChanged } from
+"https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+import {
+  getFirestore, doc, setDoc, getDoc
+} from
+"https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+/* Firebase */
+const firebaseConfig = {
+  apiKey: "AIzaSyD3hAvhSDs-lX7ORCOR0DODT3l_S_gJA2o",
+  authDomain: "arshi-market.firebaseapp.com",
+  projectId: "arshi-market"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const nameInput = document.getElementById("nameInput");
+const photoInput = document.getElementById("photoInput");
+const previewImg = document.getElementById("previewImg");
+
+let currentUser;
+
+/* تحميل البيانات */
+onAuthStateChanged(auth, async user=>{
+  if(!user){
+    location.href="index.html";
+    return;
+  }
+  currentUser = user;
+
+  const snap = await getDoc(doc(db,"users",user.uid));
+  if(snap.exists()){
+    const data = snap.data();
+    nameInput.value = data.name || "";
+    photoInput.value = data.photo || "";
+    previewImg.src = data.photo || previewImg.src;
+  }
+});
+
+/* معاينة الصورة */
+photoInput.oninput = ()=>{
+  if(photoInput.value.trim()){
+    previewImg.src = photoInput.value.trim();
+  }
+};
+
+/* حفظ */
+document.getElementById("saveBtn").onclick = async ()=>{
+  const name = nameInput.value.trim();
+  const photo = photoInput.value.trim();
+
+  if(!name){
+    alert("اكتب الاسم");
+    return;
+  }
+
+  await setDoc(
+    doc(db,"users",currentUser.uid),
+    {
+      name,
+      photo,
+      updatedAt: Date.now()
+    },
+    { merge:true }
+  );
+
+  alert("تم حفظ البيانات ✅");
+  location.href="account.html";
+};
+</script>
+
+</body>
+</html>
