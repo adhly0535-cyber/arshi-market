@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>المحادثات</title>
+
+<style>
+body{
+  margin:0;
+  font-family: Arial;
+  background:#f2f2f2;
+  direction: rtl;
+}
+
+.header{
+  background:#4CAF50;
+  color:#fff;
+  padding:12px;
+  text-align:center;
+  font-weight:bold;
+}
+
+.chat-list{
+  padding:10px;
+}
+
+.chat-item{
+  background:#fff;
+  padding:12px;
+  border-radius:10px;
+  margin-bottom:10px;
+  cursor:pointer;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.chat-item:hover{
+  background:#f9f9f9;
+}
+
+.chat-info{
+  display:flex;
+  flex-direction:column;
+}
+
+.chat-title{
+  font-weight:bold;
+  margin-bottom:4px;
+}
+
+.chat-last{
+  font-size:13px;
+  color:#666;
+}
+
+.empty{
+  text-align:center;
+  color:#777;
+  margin-top:40px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">💬 المحادثات</div>
+
+<div class="chat-list" id="chatList">
+  <div class="empty">جاري التحميل...</div>
+</div>
+
+<script type="module">
+import { initializeApp } from
+"https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+
+import { getAuth, onAuthStateChanged } from
+"https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+import {
+  getFirestore, collection,
+  query, where, onSnapshot
+} from
+"https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+/* Firebase */
+const firebaseConfig = {
+  apiKey: "AIzaSyD3hAvhSDs-lX7ORCOR0DODT3l_S_gJA2o",
+  authDomain: "arshi-market.firebaseapp.com",
+  projectId: "arshi-market"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const chatList = document.getElementById("chatList");
+
+/* تحقق تسجيل الدخول */
+onAuthStateChanged(auth, user=>{
+  if(!user){
+    location.href = "index.html";
+    return;
+  }
+  loadChats(user.uid);
+});
+
+/* تحميل المحادثات */
+function loadChats(uid){
+  const q = query(
+    collection(db,"chats"),
+    where("users","array-contains",uid)
+  );
+
+  onSnapshot(q, snap=>{
+    chatList.innerHTML="";
+
+    if(snap.empty){
+      chatList.innerHTML =
+        `<div class="empty">لا توجد محادثات بعد</div>`;
+      return;
+    }
+
+    snap.forEach(doc=>{
+      const chat = doc.data();
+
+      const div = document.createElement("div");
+      div.className="chat-item";
+      div.onclick=()=>{
+        location.href =
+          `chat.html?chatId=${doc.id}`;
+      };
+
+      div.innerHTML=`
+        <div class="chat-info">
+          <div class="chat-title">
+            ${chat.productTitle || "محادثة"}
+          </div>
+          <div class="chat-last">
+            ${chat.lastMessage || "لا توجد رسائل"}
+          </div>
+        </div>
+        ➡️
+      `;
+
+      chatList.appendChild(div);
+    });
+  });
+}
+</script>
+
+</body>
+  </html>
