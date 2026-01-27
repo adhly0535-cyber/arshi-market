@@ -241,16 +241,26 @@ function showProducts(){
       <p>${p.category||""}</p>  
       <p>${p.state||""}</p>  
       <b>${p.price||""}</b>  
-      ${p.ownerId ? `<button class="chat-btn" onclick="go('chat.html')">💬 مراسلة</button>`:""}  
+      ${p.ownerId ? `<button class="chat-btn"
+onclick="goChat('${p.ownerId}','${p.id}')">
+💬 مراسلة</button>` : ""}
     </div>`;  
   });  
 }  
 </script>  
   
-<script>  
-function go(p){ location.href=p; }
-function goAddProduct(){ location.href="add-product.html"; }
-</script>  
-  
+<script>
+function go(p){
+  location.href = p;
+}
+
+function goAddProduct(){
+  location.href = "add-product.html";
+}
+
+function goChat(ownerId, productId){
+  location.href = `chat.html?user=${ownerId}&product=${productId}`;
+}
+</script>
 </body>  
 </html>
