@@ -79,8 +79,8 @@ body{
 
 <div class="chat-box" id="chatBox">
   <div id="emptyState" class="empty">
-    لا توجد محادثات بعد 💬<br>
-    عندما تبدأ مراسلة سيظهر الشات هنا
+    لا توجد رسائل بعد 💬<br>
+    ابدأ المراسلة من أحد المنتجات
   </div>
 </div>
 
@@ -113,7 +113,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-/* chatId من الرابط (اختياري) */
+/* chatId من الرابط */
 const chatId = new URLSearchParams(location.search).get("chatId");
 
 let currentUser;
@@ -125,6 +125,7 @@ onAuthStateChanged(auth, user=>{
     return;
   }
   currentUser = user;
+
   if(chatId){
     loadMessages();
   }
@@ -148,8 +149,8 @@ function loadMessages(){
       return;
     }
 
-    snap.forEach(doc=>{
-      const m = doc.data();
+    snap.forEach(d=>{
+      const m = d.data();
       const div = document.createElement("div");
       div.className = "message " +
         (m.uid === currentUser.uid ? "me":"other");
@@ -172,7 +173,7 @@ document.getElementById("sendBtn").onclick = async ()=>{
   await addDoc(
     collection(db,"chats",chatId,"messages"),
     {
-      text: text,
+      text,
       uid: currentUser.uid,
       time: Date.now()
     }
