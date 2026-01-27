@@ -70,8 +70,11 @@ import { getAuth, onAuthStateChanged } from
 "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 import {
-  getFirestore, collection,
-  query, where, onSnapshot
+  getFirestore,
+  collection,
+  query,
+  where,
+  onSnapshot
 } from
 "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -91,7 +94,9 @@ const chatList = document.getElementById("chatList");
 /* تحقق تسجيل الدخول */
 onAuthStateChanged(auth, user=>{
   if(!user){
-    location.href = "index.html";
+    // بدون أي رسالة مزعجة
+    chatList.innerHTML =
+      `<div class="empty">يجب تسجيل الدخول لعرض المحادثات</div>`;
     return;
   }
   loadChats(user.uid);
@@ -105,7 +110,7 @@ function loadChats(uid){
   );
 
   onSnapshot(q, snap=>{
-    chatList.innerHTML="";
+    chatList.innerHTML = "";
 
     if(snap.empty){
       chatList.innerHTML =
@@ -118,11 +123,12 @@ function loadChats(uid){
 
       const div = document.createElement("div");
       div.className="chat-item";
-      div.onclick=()=>{
+      div.onclick = ()=>{
+        // فتح المحادثة فقط
         location.href = `chat.html?chatId=${doc.id}`;
       };
 
-      div.innerHTML=`
+      div.innerHTML = `
         <div class="chat-info">
           <div class="chat-title">
             ${chat.title || "محادثة"}
@@ -136,6 +142,9 @@ function loadChats(uid){
 
       chatList.appendChild(div);
     });
+  }, error=>{
+    chatList.innerHTML =
+      `<div class="empty">حدث خطأ في تحميل المحادثات</div>`;
   });
 }
 </script>
