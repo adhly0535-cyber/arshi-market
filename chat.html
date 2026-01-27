@@ -14,13 +14,36 @@ body{
   flex-direction:column;
   height:100vh;
 }
+
+/* ===== رأس الشات ===== */
 .header{
   background:#4CAF50;
   color:#fff;
-  padding:12px;
-  text-align:center;
-  font-weight:bold;
+  padding:10px;
+  display:flex;
+  align-items:center;
+  gap:10px;
 }
+.header img{
+  width:40px;
+  height:40px;
+  border-radius:50%;
+  object-fit:cover;
+}
+.header .info{
+  display:flex;
+  flex-direction:column;
+}
+.header .name{
+  font-weight:bold;
+  font-size:15px;
+}
+.header .status{
+  font-size:12px;
+  opacity:0.9;
+}
+
+/* ===== الرسائل ===== */
 .chat-box{
   flex:1;
   padding:10px;
@@ -32,6 +55,7 @@ body{
   padding:8px 12px;
   border-radius:15px;
   font-size:14px;
+  word-wrap:break-word;
 }
 .me{
   background:#4CAF50;
@@ -43,6 +67,8 @@ body{
   color:#000;
   margin-right:auto;
 }
+
+/* ===== الإدخال ===== */
 .input-bar{
   display:flex;
   padding:8px;
@@ -64,18 +90,19 @@ body{
   margin-right:6px;
   cursor:pointer;
 }
-.empty{
-  text-align:center;
-  color:#777;
-  margin-top:40px;
-  font-size:15px;
-}
 </style>
 </head>
 
 <body>
 
-<div class="header" id="chatHeader">💬 المراسلة</div>
+<!-- رأس الشات -->
+<div class="header">
+  <img id="otherImg" src="https://via.placeholder.com/150">
+  <div class="info">
+    <div class="name" id="otherName">جاري التحميل...</div>
+    <div class="status">متصل</div>
+  </div>
+</div>
 
 <div class="chat-box" id="chatBox"></div>
 
@@ -109,41 +136,49 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-/* chatId من الرابط */
+/* عناصر */
+const chatBox = document.getElementById("chatBox");
+const otherName = document.getElementById("otherName");
+const otherImg = document.getElementById("otherImg");
+
+/* chatId */
 const chatId = new URLSearchParams(location.search).get("chatId");
 
 let currentUser;
-let otherUserId = null;
-
-const chatBox = document.getElementById("chatBox");
-const header = document.getElementById("chatHeader");
+let otherUserId;
 
 /* تحقق تسجيل الدخول */
 onAuthStateChanged(auth, async user=>{
   if(!user){
-    location.href = "index.html";
+    location.href="index.html";
     return;
   }
   currentUser = user;
 
   if(!chatId){
-    header.textContent = "❌ محادثة غير صالحة";
+    otherName.textContent="محادثة غير صالحة";
     return;
   }
 
-  // جلب بيانات الشات
-  const chatRef = doc(db,"chats",chatId);
-  const chatSnap = await getDoc(chatRef);
-
+  /* جلب بيانات الشات */
+  const chatSnap = await getDoc(doc(db,"chats",chatId));
   if(!chatSnap.exists()){
-    header.textContent = "❌ المحادثة غير موجودة";
+    otherName.textContent="المحادثة غير موجودة";
     return;
   }
 
   const chatData = chatSnap.data();
   otherUserId = chatData.users.find(u=>u!==currentUser.uid);
 
-  header.textContent = "💬 مراسلة المستخدم";
+  /* جلب بيانات المستخدم الآخر */
+  const userSnap = await getDoc(doc(db,"users",otherUserId));
+  if(userSnap.exists()){
+    const u = userSnap.data();
+    otherName.textContent = u.name || "مستخدم";
+    otherImg.src = u.photo || otherImg.src;
+  }else{
+    otherName.textContent = "مستخدم";
+  }
 
   loadMessages();
 });
@@ -156,17 +191,13 @@ function loadMessages(){
   );
 
   onSnapshot(q, snap=>{
-    chatBox.innerHTML = "";
-
-    if(snap.empty){
-      return; // لا نعرض رسالة مزعجة
-    }
+    chatBox.innerHTML="";
 
     snap.forEach(d=>{
       const m = d.data();
       const div = document.createElement("div");
       div.className =
-        "message " + (m.uid === currentUser.uid ? "me" : "other");
+        "message " + (m.uid===currentUser.uid ? "me" : "other");
       div.textContent = m.text;
       chatBox.appendChild(div);
     });
@@ -175,12 +206,9 @@ function loadMessages(){
   });
 }
 
-/* إرسال رسالة */
+/* إرسال */
 document.getElementById("sendBtn").onclick = async ()=>{
-  if(!chatId) return;
-
-  const input = document.getElementById("msgInput");
-  const text = input.value.trim();
+  const text = msgInput.value.trim();
   if(!text) return;
 
   await addDoc(
@@ -195,12 +223,12 @@ document.getElementById("sendBtn").onclick = async ()=>{
   await updateDoc(
     doc(db,"chats",chatId),
     {
-      lastMessage: text,
-      lastTime: Date.now()
+      lastMessage:text,
+      lastTime:Date.now()
     }
   );
 
-  input.value = "";
+  msgInput.value="";
 };
 </script>
 
