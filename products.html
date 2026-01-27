@@ -79,6 +79,8 @@ body{
   border-radius:6px;
   cursor:pointer;
 }
+
+/* ✅ أزرار سفلية بدون مربعات */
 .bottom-nav{
   position:fixed;
   bottom:0;
@@ -86,9 +88,16 @@ body{
   background:#fff;
   display:flex;
   justify-content:space-around;
-  padding:8px 0;
+  padding:6px 0;
   border-top:1px solid #ccc;
 }
+.bottom-nav button{
+  background:none;
+  border:none;
+  font-size:13px;
+  cursor:pointer;
+}
+
 .add-product-fab{
   position:fixed;
   bottom:90px;
@@ -149,6 +158,7 @@ const country = localStorage.getItem("country");
 if(!country) location.href="country.html";
 document.getElementById("countryName").innerText = "📍 الدولة: " + country;
 
+
 const statesByCountry = {  
   "السودان":[  
     "الخرطوم","الجزيرة","نهر النيل","البحر الأحمر","كسلا","القضارف",  
@@ -162,6 +172,7 @@ const statesByCountry = {
     "قنا","الأقصر","أسوان","مطروح","الوادي الجديد","شمال سيناء","جنوب سيناء"  
   ]  
 };  
+
 
 const statesBox=document.getElementById("statesBox");
 let currentState="";
@@ -213,7 +224,7 @@ function showProducts(){
   });
 }
 
-/* 🔥 شات حقيقي */
+/* ✅ شات حقيقي */
 window.startChat = async (productId, sellerId, title)=>{
   const user = auth.currentUser;
   if(!user){
@@ -226,7 +237,7 @@ window.startChat = async (productId, sellerId, title)=>{
     return;
   }
 
-  const chatId = productId+"_"+user.uid+"_"+sellerId;
+  const chatId = [productId, user.uid, sellerId].sort().join("_");
   const ref = doc(db,"chats",chatId);
   const snap = await getDoc(ref);
 
@@ -251,4 +262,4 @@ function goAddProduct(){location.href="add-product.html";}
 </script>
 
 </body>
-  </html>
+</html>
