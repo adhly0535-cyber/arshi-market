@@ -75,7 +75,7 @@ body{
 
 <body>
 
-<div class="header">💬 المراسلة</div>
+<div class="header" id="chatHeader">💬 المراسلة</div>
 
 <div class="chat-box" id="chatBox"></div>
 
@@ -94,7 +94,7 @@ import { getAuth, onAuthStateChanged } from
 import {
   getFirestore, collection, addDoc,
   query, orderBy, onSnapshot,
-  doc, updateDoc
+  doc, updateDoc, getDoc
 } from
 "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -113,10 +113,13 @@ const db = getFirestore(app);
 const chatId = new URLSearchParams(location.search).get("chatId");
 
 let currentUser;
+let otherUserId = null;
+
 const chatBox = document.getElementById("chatBox");
+const header = document.getElementById("chatHeader");
 
 /* تحقق تسجيل الدخول */
-onAuthStateChanged(auth, user=>{
+onAuthStateChanged(auth, async user=>{
   if(!user){
     location.href = "index.html";
     return;
@@ -124,12 +127,23 @@ onAuthStateChanged(auth, user=>{
   currentUser = user;
 
   if(!chatId){
-    chatBox.innerHTML = `
-      <div class="empty">
-        لا توجد محادثة ❌
-      </div>`;
+    header.textContent = "❌ محادثة غير صالحة";
     return;
   }
+
+  // جلب بيانات الشات
+  const chatRef = doc(db,"chats",chatId);
+  const chatSnap = await getDoc(chatRef);
+
+  if(!chatSnap.exists()){
+    header.textContent = "❌ المحادثة غير موجودة";
+    return;
+  }
+
+  const chatData = chatSnap.data();
+  otherUserId = chatData.users.find(u=>u!==currentUser.uid);
+
+  header.textContent = "💬 مراسلة المستخدم";
 
   loadMessages();
 });
@@ -145,11 +159,7 @@ function loadMessages(){
     chatBox.innerHTML = "";
 
     if(snap.empty){
-      chatBox.innerHTML = `
-        <div class="empty">
-          لا توجد رسائل بعد 💬
-        </div>`;
-      return;
+      return; // لا نعرض رسالة مزعجة
     }
 
     snap.forEach(d=>{
