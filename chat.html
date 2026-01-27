@@ -98,7 +98,8 @@ import { getAuth, onAuthStateChanged } from
 
 import {
   getFirestore, collection, addDoc,
-  query, orderBy, onSnapshot
+  query, orderBy, onSnapshot,
+  doc, updateDoc
 } from
 "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -170,12 +171,22 @@ document.getElementById("sendBtn").onclick = async ()=>{
   const text = input.value.trim();
   if(!text) return;
 
+  // إضافة الرسالة
   await addDoc(
     collection(db,"chats",chatId,"messages"),
     {
       text,
       uid: currentUser.uid,
       time: Date.now()
+    }
+  );
+
+  // 🔥 تحديث آخر رسالة في inbox
+  await updateDoc(
+    doc(db,"chats",chatId),
+    {
+      lastMessage: text,
+      lastTime: Date.now()
     }
   );
 
