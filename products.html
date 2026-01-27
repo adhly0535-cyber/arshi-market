@@ -1,118 +1,94 @@
-<!DOCTYPE html>  
-<html lang="ar">  
-<head>  
-<meta charset="UTF-8">  
-<title>Arshi Market</title>  
-  
-<style>  
-body{  
-  font-family: Arial;  
-  margin:0;  
-  padding-bottom:80px;  
-  background:#f5f5f5;  
-}  
-  
-.country-name{  
-  background:#4CAF50;  
-  color:#fff;  
-  text-align:center;  
-  padding:8px;  
-  font-weight:bold;  
-  cursor:pointer;  
-}  
-  
-.categories{  
-  display:flex;  
-  gap:8px;  
-  padding:10px;  
-  background:#fff;  
-  overflow-x:auto;  
-}  
-  
-.categories button{  
-  border:none;  
-  background:#eee;  
-  padding:8px 14px;  
-  border-radius:20px;  
-  cursor:pointer;  
-  white-space:nowrap;  
-}  
-  
-.categories button.active{  
-  background:#4CAF50;  
-  color:#fff;  
-}  
-  
-.states{  
-  display:none;  
-  gap:8px;  
-  padding:10px;  
-  background:#fff;  
-  overflow-x:auto;  
-  border-top:1px solid #eee;  
-}  
-  
-.states button{  
-  border:none;  
-  background:#ddd;  
-  padding:6px 14px;  
-  border-radius:20px;  
-  cursor:pointer;  
-  font-size:13px;  
-}  
-  
-.states button.active{  
-  background:#4CAF50;  
-  color:#fff;  
-}  
-  
-.products{  
-  padding:10px;  
-  display:grid;  
-  grid-template-columns: repeat(2, 1fr);  
-  gap:10px;  
-}  
-  
-.product-card{  
-  background:#fff;  
-  padding:8px;  
-  border-radius:10px;  
-  font-size:13px;  
-}  
-  
-.product-card b{  
-  color:#4CAF50;  
-}  
-  
-.product-card .chat-btn{  
-  margin-top:6px;  
-  width:100%;  
-  background:#4CAF50;  
-  color:#fff;  
-  border:none;  
-  padding:6px;  
-  border-radius:6px;  
-  cursor:pointer;  
-  font-size:13px;  
-}  
-  
-.bottom-nav{  
-  position:fixed;  
-  bottom:0;  
-  width:100%;  
-  background:#fff;  
-  display:flex;  
-  justify-content:space-around;  
-  padding:8px 0;  
-  border-top:1px solid #ccc;  
-}  
-.bottom-nav button{  
-  background:none;  
-  border:none;  
-  font-size:13px;  
-}  
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>Arshi Market</title>
 
-/* زر إضافة المنتج */
+<style>
+body{
+  font-family: Arial;
+  margin:0;
+  padding-bottom:80px;
+  background:#f5f5f5;
+}
+.country-name{
+  background:#4CAF50;
+  color:#fff;
+  text-align:center;
+  padding:8px;
+  font-weight:bold;
+  cursor:pointer;
+}
+.categories{
+  display:flex;
+  gap:8px;
+  padding:10px;
+  background:#fff;
+  overflow-x:auto;
+}
+.categories button{
+  border:none;
+  background:#eee;
+  padding:8px 14px;
+  border-radius:20px;
+  cursor:pointer;
+}
+.categories button.active{
+  background:#4CAF50;
+  color:#fff;
+}
+.states{
+  display:none;
+  gap:8px;
+  padding:10px;
+  background:#fff;
+  overflow-x:auto;
+}
+.states button{
+  border:none;
+  background:#ddd;
+  padding:6px 14px;
+  border-radius:20px;
+  cursor:pointer;
+}
+.states button.active{
+  background:#4CAF50;
+  color:#fff;
+}
+.products{
+  padding:10px;
+  display:grid;
+  grid-template-columns: repeat(2,1fr);
+  gap:10px;
+}
+.product-card{
+  background:#fff;
+  padding:8px;
+  border-radius:10px;
+}
+.product-card b{
+  color:#4CAF50;
+}
+.chat-btn{
+  margin-top:6px;
+  width:100%;
+  background:#4CAF50;
+  color:#fff;
+  border:none;
+  padding:6px;
+  border-radius:6px;
+  cursor:pointer;
+}
+.bottom-nav{
+  position:fixed;
+  bottom:0;
+  width:100%;
+  background:#fff;
+  display:flex;
+  justify-content:space-around;
+  padding:8px 0;
+  border-top:1px solid #ccc;
+}
 .add-product-fab{
   position:fixed;
   bottom:90px;
@@ -124,59 +100,57 @@ body{
   height:55px;
   border-radius:50%;
   font-size:28px;
-  cursor:pointer;
-  box-shadow:0 4px 10px rgba(0,0,0,0.3);
 }
-</style>  
-</head>  
-  
-<body>  
-  
-<div class="country-name" id="countryName"></div>  
-  
-<!-- التصنيفات -->  
-<div class="categories">  
-  <button onclick="selectCategory(this,'سيارات')">🚗 سيارات</button>  
-  <button onclick="selectCategory(this,'عقارات')">🏢 عقارات</button>  
-  <button onclick="selectCategory(this,'وظائف')">🧑‍💼 وظائف</button>  
-  <button onclick="selectCategory(this,'هواتف + حواسيب')">📱💻 هواتف + حواسيب</button>  
-</div>  
-  
-<!-- الولايات -->  
-<div class="states" id="statesBox"></div>  
-  
-<!-- المنتجات -->  
-<div class="products" id="products"></div>  
-  
-<!-- شريط التنقل -->  
-<div class="bottom-nav">  
-  <button onclick="go('products.html')">🏠<br>الرئيسية</button>  
-  <button onclick="go('chat.html')">💬<br>الشات</button>  
-  <button onclick="go('account.html')">👤<br>الحساب</button>  
-  <button onclick="go('settings.html')">⚙️<br>الإعدادات</button>  
-</div>  
+</style>
+</head>
 
-<!-- زر إضافة المنتج -->
+<body>
+
+<div class="country-name" id="countryName"></div>
+
+<div class="categories">
+  <button onclick="selectCategory(this,'سيارات')">🚗 سيارات</button>
+  <button onclick="selectCategory(this,'عقارات')">🏢 عقارات</button>
+  <button onclick="selectCategory(this,'وظائف')">🧑‍💼 وظائف</button>
+  <button onclick="selectCategory(this,'هواتف + حواسيب')">📱💻 هواتف + حواسيب</button>
+</div>
+
+<div class="states" id="statesBox"></div>
+<div class="products" id="products"></div>
+
+<div class="bottom-nav">
+  <button onclick="go('products.html')">🏠<br>الرئيسية</button>
+  <button onclick="go('inbox.html')">💬<br>الشات</button>
+  <button onclick="go('account.html')">👤<br>الحساب</button>
+  <button onclick="go('settings.html')">⚙️<br>الإعدادات</button>
+</div>
+
 <button class="add-product-fab" onclick="goAddProduct()">+</button>
-  
-<script type="module">  
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";  
-import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";  
-  
-const firebaseConfig = {  
-  apiKey: "AIzaSyD3hAvhSDs-lX7ORCOR0DODT3l_S_gJA2o",  
-  authDomain: "arshi-market.firebaseapp.com",  
-  projectId: "arshi-market",  
-};  
-  
-const app = initializeApp(firebaseConfig);  
-const db = getFirestore(app);  
-  
-const country = localStorage.getItem("country");  
-if(!country) location.href="country.html";  
-  
-document.getElementById("countryName").innerText = "📍 الدولة: " + country;  
-  
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+  getFirestore, collection, onSnapshot,
+  doc, getDoc, setDoc
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD3hAvhSDs-lX7ORCOR0DODT3l_S_gJA2o",
+  authDomain: "arshi-market.firebaseapp.com",
+  projectId: "arshi-market",
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+const country = localStorage.getItem("country");
+if(!country) location.href="country.html";
+document.getElementById("countryName").innerText = "📍 الدولة: " + country;
+
+/* ✅ كل الولايات موجودة */
+
 const statesByCountry = {  
   "السودان":[  
     "الخرطوم","الجزيرة","نهر النيل","البحر الأحمر","كسلا","القضارف",  
@@ -190,77 +164,95 @@ const statesByCountry = {
     "قنا","الأقصر","أسوان","مطروح","الوادي الجديد","شمال سيناء","جنوب سيناء"  
   ]  
 };  
-  
-const statesBox = document.getElementById("statesBox");  
-let currentState="", currentCategory="";  
-  
-(statesByCountry[country]||[]).forEach(s=>{  
-  const b=document.createElement("button");  
-  b.textContent=s;  
-  b.onclick=()=>{  
-    document.querySelectorAll(".states button").forEach(x=>x.classList.remove("active"));  
-    b.classList.add("active");  
-    currentState=s;  
-    showProducts();  
-  };  
-  statesBox.appendChild(b);  
-});  
-  
-let allProducts=[];  
-onSnapshot(collection(db,"products"),snap=>{  
-  allProducts=snap.docs.map(d=>d.data());  
-  showProducts();  
-});  
-  
-window.selectCategory=(btn,cat)=>{  
-  document.querySelectorAll(".categories button").forEach(b=>b.classList.remove("active"));  
-  btn.classList.add("active");  
-  currentCategory=cat;  
-  statesBox.style.display="flex";  
-  showProducts();  
-};  
-  
-function showProducts(){  
-  const box=document.getElementById("products");  
-  box.innerHTML="";  
-  const filtered=allProducts.filter(p=>  
-    p.country===country &&  
-    (!currentCategory||p.category===currentCategory) &&  
-    (!currentState||p.state===currentState)  
-  );  
-  
-  if(!filtered.length){  
-    box.innerHTML="<p>لا توجد منتجات</p>";  
-    return;  
-  }  
-  
-  filtered.forEach(p=>{  
-    box.innerHTML+=`  
-    <div class="product-card">  
-      <p><b>${p.title||""}</b></p>  
-      <p>${p.category||""}</p>  
-      <p>${p.state||""}</p>  
-      <b>${p.price||""}</b>  
-      ${p.ownerId ? `<button class="chat-btn"
-onclick="goChat('${p.ownerId}','${p.id}')">
-💬 مراسلة</button>` : ""}
-    </div>`;  
-  });  
-}  
-</script>  
-  
-<script>
-function go(p){
-  location.href = p;
+
+
+const statesBox=document.getElementById("statesBox");
+let currentState="";
+let currentCategory="";
+
+/* إنشاء أزرار الولايات */
+(statesByCountry[country]||[]).forEach(s=>{
+  const b=document.createElement("button");
+  b.textContent=s;
+  b.onclick=()=>{
+    document.querySelectorAll(".states button").forEach(x=>x.classList.remove("active"));
+    b.classList.add("active");
+    currentState=s;
+    showProducts();
+  };
+  statesBox.appendChild(b);
+});
+
+let allProducts=[];
+onSnapshot(collection(db,"products"),snap=>{
+  allProducts=snap.docs.map(d=>({id:d.id,...d.data()}));
+  showProducts();
+});
+
+window.selectCategory=(btn,cat)=>{
+  document.querySelectorAll(".categories button").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  currentCategory=cat;
+  statesBox.style.display="flex";
+  showProducts();
+};
+
+/* ✅ هنا الإصلاح الحقيقي */
+function showProducts(){
+  const box=document.getElementById("products");
+  box.innerHTML="";
+
+  allProducts.filter(p=>
+    p.country===country &&
+    (!currentCategory || p.category===currentCategory) &&
+    (!currentState || p.state===currentState)
+  ).forEach(p=>{
+    box.innerHTML+=`
+    <div class="product-card">
+      <p><b>${p.title}</b></p>
+      <p>${p.price}</p>
+      <button class="chat-btn"
+        onclick="startChat('${p.id}','${p.ownerId}','${p.title}')">
+        💬 مراسلة
+      </button>
+    </div>`;
+  });
 }
 
-function goAddProduct(){
-  location.href = "add-product.html";
-}
+/* 🔥 شات حقيقي */
+window.startChat = async (productId, sellerId, title)=>{
+  const user = auth.currentUser;
+  if(!user){
+    alert("سجّل دخول أولاً");
+    location.href="index.html";
+    return;
+  }
+  if(user.uid===sellerId){
+    alert("لا يمكنك مراسلة نفسك");
+    return;
+  }
 
-function goChat(ownerId, productId){
-  location.href = `chat.html?user=${ownerId}&product=${productId}`;
-}
+  const chatId = productId+"_"+user.uid+"_"+sellerId;
+  const ref = doc(db,"chats",chatId);
+  const snap = await getDoc(ref);
+
+  if(!snap.exists()){
+    await setDoc(ref,{
+      productId,
+      title,
+      users:[user.uid,sellerId],
+      createdAt:Date.now()
+    });
+  }
+
+  location.href="chat.html?chatId="+chatId;
+};
 </script>
-</body>  
-</html>
+
+<script>
+function go(p){location.href=p;}
+function goAddProduct(){location.href="add-product.html";}
+</script>
+
+</body>
+  </html>
