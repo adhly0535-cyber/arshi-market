@@ -46,12 +46,27 @@ document.getElementById("loginBtn").onclick = () => {
 // عند الرجوع من Google (الطريقة الصحيحة)
 onAuthStateChanged(auth, (user) => {
   if (user) {
+    onAuthStateChanged(auth, (user) => {
+  if (user) {
+
+    // 1️⃣ رقم المستخدم (UID)
+    console.log("USER UID:", user.uid);
+
+    // 2️⃣ إيميل المستخدم
+    console.log("USER EMAIL:", user.email);
+
+    // 3️⃣ اسم المستخدم
+    console.log("USER NAME:", user.displayName);
+
     status.textContent = "✅ تم تسجيل الدخول بنجاح، جاري التحويل...";
+
     setTimeout(() => {
       window.location.href = "country.html";
     }, 1500);
+
   }
 });
+  
 </script>
 
 </body>
