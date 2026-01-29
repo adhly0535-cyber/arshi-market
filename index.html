@@ -17,7 +17,9 @@ import {
   getAuth,
   GoogleAuthProvider,
   signInWithRedirect,
-  onAuthStateChanged
+  onAuthStateChanged,
+  setPersistence,
+  browserLocalPersistence
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 // ⚠️ لم نغيّر أي قيم
@@ -34,24 +36,30 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
-
 const status = document.getElementById("status");
 
-// عند الضغط → فتح Google
-document.getElementById("loginBtn").onclick = () => {
-  status.textContent = "⏳ جاري فتح Google...";
-  signInWithRedirect(auth, provider);
-};
+// تأكيد أن الجلسة محفوطة في localStorage
+setPersistence(auth, browserLocalPersistence)
+  .then(() => {
+    // عند الضغط → فتح Google
+    document.getElementById("loginBtn").onclick = () => {
+      status.textContent = "⏳ جاري فتح Google...";
+      signInWithRedirect(auth, provider);
+    };
 
-// عند الرجوع من Google (الطريقة الصحيحة)
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    status.textContent = "✅ تم تسجيل الدخول بنجاح، جاري التحويل...";
-    setTimeout(() => {
-      window.location.href = "country.html";
-    }, 1500);
-  }
-});
+    // عند الرجوع من Google (الطريقة الصحيحة)
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        status.textContent = "✅ تم تسجيل الدخول بنجاح، جاري التحويل...";
+        setTimeout(() => {
+          window.location.href = "country.html";
+        }, 1500);
+      }
+    });
+  })
+  .catch((error) => {
+    console.error("Error setting persistence:", error);
+  });
 </script>
 
 </body>
