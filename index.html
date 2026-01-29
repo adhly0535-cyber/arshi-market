@@ -41,21 +41,24 @@ const status = document.getElementById("status");
 // تأكيد أن الجلسة محفوطة في localStorage
 setPersistence(auth, browserLocalPersistence)
   .then(() => {
-    // عند الضغط → فتح Google
-    document.getElementById("loginBtn").onclick = () => {
-      status.textContent = "⏳ جاري فتح Google...";
-      signInWithRedirect(auth, provider);
-    };
-
-    // عند الرجوع من Google (الطريقة الصحيحة)
+    // التحقق إذا كان المستخدم قد قام بتسجيل الدخول مسبقًا
     onAuthStateChanged(auth, (user) => {
       if (user) {
+        console.log("تم تسجيل الدخول مسبقًا:", user);  // سجل الدخول مسبقًا
         status.textContent = "✅ تم تسجيل الدخول بنجاح، جاري التحويل...";
         setTimeout(() => {
-          window.location.href = "country.html";
+          window.location.href = "country.html";  // التوجيه إلى صفحة country.html بعد تسجيل الدخول
         }, 1500);
+      } else {
+        console.log("لم يتم تسجيل الدخول بعد.");
       }
     });
+
+    // عند الضغط على زر تسجيل الدخول → فتح نافذة Google
+    document.getElementById("loginBtn").onclick = () => {
+      status.textContent = "⏳ جاري فتح Google...";
+      signInWithRedirect(auth, provider);  // فتح نافذة تسجيل الدخول عبر Google
+    };
   })
   .catch((error) => {
     console.error("Error setting persistence:", error);
