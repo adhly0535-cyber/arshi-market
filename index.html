@@ -16,10 +16,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import {
   getAuth,
   GoogleAuthProvider,
-  signInWithRedirect,
-  onAuthStateChanged,
-  setPersistence,
-  browserLocalPersistence
+  signInWithRedirect
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 // ⚠️ لم نغيّر أي قيم
@@ -38,31 +35,21 @@ const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 const status = document.getElementById("status");
 
-// تأكيد أن الجلسة محفوطة في localStorage
-setPersistence(auth, browserLocalPersistence)
-  .then(() => {
-    // التحقق إذا كان المستخدم قد قام بتسجيل الدخول مسبقًا
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        console.log("تم تسجيل الدخول مسبقًا:", user);  // سجل الدخول مسبقًا
-        status.textContent = "✅ تم تسجيل الدخول بنجاح، جاري التحويل...";
-        setTimeout(() => {
-          window.location.href = "country.html";  // التوجيه إلى صفحة country.html بعد تسجيل الدخول
-        }, 1500);
-      } else {
-        console.log("لم يتم تسجيل الدخول بعد.");
-      }
-    });
+// عند الضغط → فتح نافذة Google لتسجيل الدخول
+document.getElementById("loginBtn").onclick = () => {
+  status.textContent = "⏳ جاري فتح Google...";
+  signInWithRedirect(auth, provider);
+};
 
-    // عند الضغط على زر تسجيل الدخول → فتح نافذة Google
-    document.getElementById("loginBtn").onclick = () => {
-      status.textContent = "⏳ جاري فتح Google...";
-      signInWithRedirect(auth, provider);  // فتح نافذة تسجيل الدخول عبر Google
-    };
-  })
-  .catch((error) => {
-    console.error("Error setting persistence:", error);
-  });
+// عند الرجوع من Google (الطريقة الصحيحة)
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    console.log("تم تسجيل الدخول بنجاح:", user);  // سجل الدخول بنجاح
+    status.textContent = "✅ تم تسجيل الدخول بنجاح، جاري التحويل...";
+    // التوجيه مباشرة إلى صفحة country.html بدون التحقق
+    window.location.href = "country.html";
+  }
+});
 </script>
 
 </body>
