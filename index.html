@@ -18,10 +18,12 @@ import {
   GoogleAuthProvider,
   signInWithRedirect,
   onAuthStateChanged,
-  getRedirectResult
+  getRedirectResult,
+  setPersistence,
+  browserLocalPersistence
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-// ⚠️ نفس إعداداتك بدون تغيير
+// إعداداتك بدون تغيير
 const firebaseConfig = {
   apiKey: "AIzaSyD3hAvhSDs-lX7ORCOR0DODT3l_S_gJA2o",
   authDomain: "arshi-market.firebaseapp.com",
@@ -37,42 +39,40 @@ const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 const status = document.getElementById("status");
 
+// 🔥 فرض حفظ الجلسة (الحل النهائي)
+setPersistence(auth, browserLocalPersistence)
+  .then(() => {
+    console.log("Persistence set");
+  })
+  .catch((error) => {
+    console.error("Persistence error:", error);
+  });
+
 // زر تسجيل الدخول
 document.getElementById("loginBtn").onclick = () => {
   status.textContent = "⏳ جاري فتح Google...";
   signInWithRedirect(auth, provider);
 };
 
-// 🔒 دالة تحويل آمنة للموبايل
-function safeRedirect() {
-  setTimeout(() => {
-    // أقوى تحويل على الموبايل
-    window.location.replace("country.html");
-  }, 300);
+// دالة تحويل قوية
+function redirectNow() {
+  window.open("country.html", "_self");
 }
 
-// ننتظر تحميل الصفحة بالكامل
+// بعد تحميل الصفحة
 document.addEventListener("DOMContentLoaded", () => {
 
-  // 1️⃣ التقاط نتيجة Google Redirect
-  getRedirectResult(auth)
-    .then((result) => {
-      if (result && result.user) {
-        console.log("Redirect Login:", result.user);
-        status.textContent = "✅ تم تسجيل الدخول بنجاح، جاري التحويل...";
-        safeRedirect();
-      }
-    })
-    .catch((error) => {
-      console.error("Redirect Error:", error);
-    });
+  getRedirectResult(auth).then((result) => {
+    if (result?.user) {
+      status.textContent = "✅ تم تسجيل الدخول، جاري التحويل...";
+      redirectNow();
+    }
+  });
 
-  // 2️⃣ Listener عام لحالة تسجيل الدخول
   onAuthStateChanged(auth, (user) => {
     if (user) {
-      console.log("Auth State Login:", user);
-      status.textContent = "✅ تم تسجيل الدخول بنجاح، جاري التحويل...";
-      safeRedirect();
+      status.textContent = "✅ تم تسجيل الدخول، جاري التحويل...";
+      redirectNow();
     }
   });
 
