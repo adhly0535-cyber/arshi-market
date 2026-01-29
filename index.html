@@ -21,7 +21,7 @@ import {
   getRedirectResult
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-// ⚠️ لم نغيّر أي قيم
+// ⚠️ نفس إعداداتك بدون تغيير
 const firebaseConfig = {
   apiKey: "AIzaSyD3hAvhSDs-lX7ORCOR0DODT3l_S_gJA2o",
   authDomain: "arshi-market.firebaseapp.com",
@@ -37,28 +37,45 @@ const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 const status = document.getElementById("status");
 
-// عند الضغط → فتح نافذة Google لتسجيل الدخول
+// زر تسجيل الدخول
 document.getElementById("loginBtn").onclick = () => {
   status.textContent = "⏳ جاري فتح Google...";
   signInWithRedirect(auth, provider);
 };
 
-// 🔹 ضمان التقاط نتيجة تسجيل الدخول بعد الرجوع من Google
-getRedirectResult(auth).then((result) => {
-  if (result && result.user) {
-    console.log("تم تسجيل الدخول (Redirect):", result.user);
-    status.textContent = "✅ تم تسجيل الدخول بنجاح، جاري التحويل...";
-    window.location.href = "country.html";
-  }
-});
+// 🔒 دالة تحويل آمنة للموبايل
+function safeRedirect() {
+  setTimeout(() => {
+    // أقوى تحويل على الموبايل
+    window.location.replace("country.html");
+  }, 300);
+}
 
-// 🔹 Listener عام (يعمل في كل الحالات)
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    console.log("تم تسجيل الدخول (AuthState):", user);
-    status.textContent = "✅ تم تسجيل الدخول بنجاح، جاري التحويل...";
-    window.location.href = "country.html";
-  }
+// ننتظر تحميل الصفحة بالكامل
+document.addEventListener("DOMContentLoaded", () => {
+
+  // 1️⃣ التقاط نتيجة Google Redirect
+  getRedirectResult(auth)
+    .then((result) => {
+      if (result && result.user) {
+        console.log("Redirect Login:", result.user);
+        status.textContent = "✅ تم تسجيل الدخول بنجاح، جاري التحويل...";
+        safeRedirect();
+      }
+    })
+    .catch((error) => {
+      console.error("Redirect Error:", error);
+    });
+
+  // 2️⃣ Listener عام لحالة تسجيل الدخول
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      console.log("Auth State Login:", user);
+      status.textContent = "✅ تم تسجيل الدخول بنجاح، جاري التحويل...";
+      safeRedirect();
+    }
+  });
+
 });
 </script>
 
