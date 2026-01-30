@@ -18,20 +18,17 @@ import {
   GoogleAuthProvider,
   signInWithRedirect,
   onAuthStateChanged,
-  getRedirectResult,
   setPersistence,
   browserLocalPersistence
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-// إعداداتك بدون تغيير
 const firebaseConfig = {
   apiKey: "AIzaSyD3hAvhSDs-lX7ORCOR0DODT3l_S_gJA2o",
   authDomain: "arshi-market.firebaseapp.com",
   projectId: "arshi-market",
-  storageBucket: "arshi-market.firebasestorage.app",
+  storageBucket: "arshi-market.appspot.com",
   messagingSenderId: "930764899868",
-  appId: "1:930764899868:web:06795817be84f0a68a01d9",
-  measurementId: "G-CCR0B650WG"
+  appId: "1:930764899868:web:06795817be84f0a68a01d9"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -39,14 +36,8 @@ const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 const status = document.getElementById("status");
 
-// 🔥 فرض حفظ الجلسة (الحل النهائي)
-setPersistence(auth, browserLocalPersistence)
-  .then(() => {
-    console.log("Persistence set");
-  })
-  .catch((error) => {
-    console.error("Persistence error:", error);
-  });
+// تثبيت الجلسة
+await setPersistence(auth, browserLocalPersistence);
 
 // زر تسجيل الدخول
 document.getElementById("loginBtn").onclick = () => {
@@ -54,29 +45,23 @@ document.getElementById("loginBtn").onclick = () => {
   signInWithRedirect(auth, provider);
 };
 
-// دالة تحويل قوية
-function redirectNow() {
-  window.open("country.html", "_self");
-}
+// حل ذكي: نراقب الدخول + fallback
+let redirected = false;
 
-// بعد تحميل الصفحة
-document.addEventListener("DOMContentLoaded", () => {
-
-  getRedirectResult(auth).then((result) => {
-    if (result?.user) {
-      status.textContent = "✅ تم تسجيل الدخول، جاري التحويل...";
-      redirectNow();
-    }
-  });
-
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      status.textContent = "✅ تم تسجيل الدخول، جاري التحويل...";
-      redirectNow();
-    }
-  });
-
+onAuthStateChanged(auth, (user) => {
+  if (user && !redirected) {
+    redirected = true;
+    status.textContent = "✅ تم تسجيل الدخول، جاري التحويل...";
+    window.location.href = "country.html";
+  }
 });
+
+// fallback في حال تأخر auth
+setTimeout(() => {
+  if (!redirected && auth.currentUser) {
+    window.location.href = "country.html";
+  }
+}, 2500);
 </script>
 
 </body>
