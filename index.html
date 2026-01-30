@@ -17,6 +17,7 @@ import {
   getAuth,
   GoogleAuthProvider,
   signInWithRedirect,
+  getRedirectResult,
   onAuthStateChanged,
   setPersistence,
   browserLocalPersistence
@@ -45,23 +46,25 @@ document.getElementById("loginBtn").onclick = () => {
   signInWithRedirect(auth, provider);
 };
 
-// حل ذكي: نراقب الدخول + fallback
-let redirected = false;
+// ✅ التعامل الصحيح مع نتيجة التحويل
+getRedirectResult(auth)
+  .then((result) => {
+    if (result && result.user) {
+      status.textContent = "✅ تم تسجيل الدخول، جاري التحويل...";
+      window.location.href = "country.html";
+    }
+  })
+  .catch((error) => {
+    status.textContent = "❌ خطأ في تسجيل الدخول";
+    console.error(error);
+  });
 
+// حماية إضافية (لو المستخدم دخل وهو مسجّل سابقًا)
 onAuthStateChanged(auth, (user) => {
-  if (user && !redirected) {
-    redirected = true;
-    status.textContent = "✅ تم تسجيل الدخول، جاري التحويل...";
+  if (user) {
     window.location.href = "country.html";
   }
 });
-
-// fallback في حال تأخر auth
-setTimeout(() => {
-  if (!redirected && auth.currentUser) {
-    window.location.href = "country.html";
-  }
-}, 2500);
 </script>
 
 </body>
