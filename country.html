@@ -20,49 +20,76 @@
 </head>
 <body>
 
-  <h2>🌍 اختر دولتك</h2>
+<h2>🌍 اختر دولتك</h2>
 
-  <select id="country">
-    <option value="">-- اختر الدولة --</option>
-  </select>
+<select id="country">
+  <option value="">-- اختر الدولة --</option>
+</select>
 
-  <br>
-  <button onclick="saveCountry()">متابعة</button>
+<br>
+<button id="saveBtn">متابعة</button>
 
-  <script>
-    // 🌍 الدول العربية فقط
-    const countries = [
-      "الجزائر", "البحرين", "مصر", "العراق", "الأردن", "الكويت", 
-      "لبنان", "ليبيا", "المغرب", "موريتانيا", "عُمان", "فلسطين", 
-      "قطر", "السعودية", "السودان", "سوريا", "تونس", "الإمارات", 
-      "اليمن"
-    ];
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    const select = document.getElementById("country");
+// إعدادات Firebase (نفسها)
+const firebaseConfig = {
+  apiKey: "AIzaSyD3hAvhSDs-lX7ORCOR0DODT3l_S_gJA2o",
+  authDomain: "arshi-market.firebaseapp.com",
+  projectId: "arshi-market",
+  storageBucket: "arshi-market.appspot.com",
+  messagingSenderId: "930764899868",
+  appId: "1:930764899868:web:06795817be84f0a68a01d9"
+};
 
-    countries.forEach(c => {
-      const option = document.createElement("option");
-      option.value = c;
-      option.textContent = c;
-      select.appendChild(option);
-    });
+// تشغيل Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 
-    // ✅ إضافة مهمة: لو الدولة محفوظة مسبقًا
-    const savedCountry = localStorage.getItem("country");
-    if (savedCountry) {
-      select.value = savedCountry;
-    }
+// 🔒 حماية الصفحة
+onAuthStateChanged(auth, (user) => {
+  if (!user) {
+    window.location.replace("index.html"); // صفحة تسجيل الدخول
+  }
+});
 
-    function saveCountry() {
-      const country = select.value;
-      if (!country) {
-        alert("من فضلك اختر دولة");
-        return;
-      }
-      localStorage.setItem("country", country);
-      window.location.href = "products.html";
-    }
-  </script>
+// 🌍 الدول العربية
+const countries = [
+  "الجزائر", "البحرين", "مصر", "العراق", "الأردن", "الكويت",
+  "لبنان", "ليبيا", "المغرب", "موريتانيا", "عُمان", "فلسطين",
+  "قطر", "السعودية", "السودان", "سوريا", "تونس", "الإمارات",
+  "اليمن"
+];
+
+const select = document.getElementById("country");
+const saveBtn = document.getElementById("saveBtn");
+
+// تعبئة القائمة
+countries.forEach(c => {
+  const option = document.createElement("option");
+  option.value = c;
+  option.textContent = c;
+  select.appendChild(option);
+});
+
+// تحميل الدولة إن كانت محفوظة
+const savedCountry = localStorage.getItem("country");
+if (savedCountry) {
+  select.value = savedCountry;
+}
+
+// حفظ الدولة
+saveBtn.onclick = () => {
+  const country = select.value;
+  if (!country) {
+    alert("من فضلك اختر دولة");
+    return;
+  }
+  localStorage.setItem("country", country);
+  window.location.replace("products.html");
+};
+</script>
 
 </body>
 </html>
