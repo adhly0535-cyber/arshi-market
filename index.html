@@ -12,48 +12,54 @@
 <p id="status" style="margin-top:10px;font-weight:bold;"></p>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import {
-  getAuth,
-  GoogleAuthProvider,
-  signInWithRedirect,
-  getRedirectResult,
-  setPersistence,
-  browserLocalPersistence
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import {
+    getAuth,
+    GoogleAuthProvider,
+    signInWithRedirect,
+    getRedirectResult,
+    setPersistence,
+    browserLocalPersistence,
+    onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-// إعدادات Firebase
-const firebaseConfig = {
-  apiKey: "AIzaSyD3hAvhSDs-lX7ORCOR0DODT3l_S_gJA2o",
-  authDomain: "arshi-market.firebaseapp.com",
-  projectId: "arshi-market",
-  storageBucket: "arshi-market.appspot.com",
-  messagingSenderId: "930764899868",
-  appId: "1:930764899868:web:06795817be84f0a68a01d9"
-};
+  // إعدادات Firebase
+  const firebaseConfig = {
+    apiKey: "AIzaSyD3hAvhSDs-lX7ORCOR0DODT3l_S_gJA2o",
+    authDomain: "arshi-market.firebaseapp.com",
+    projectId: "arshi-market",
+    storageBucket: "arshi-market.appspot.com",
+    messagingSenderId: "930764899868",
+    appId: "1:930764899868:web:06795817be84f0a68a01d9"
+  };
 
-// تشغيل Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const provider = new GoogleAuthProvider();
-const status = document.getElementById("status");
+  // تشغيل Firebase
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
 
-// تثبيت الجلسة (مهم للأجهزة الأخرى)
-await setPersistence(auth, browserLocalPersistence);
+  const loginBtn = document.getElementById("loginBtn");
+  const status = document.getElementById("status");
 
-// زر تسجيل الدخول
-document.getElementById("loginBtn").onclick = () => {
-  status.textContent = "⏳ جاري فتح Google...";
-  signInWithRedirect(auth, provider);
-};
+  // تثبيت الجلسة (مهم جدًا)
+  await setPersistence(auth, browserLocalPersistence);
 
-// التعامل مع نتيجة الرجوع من Google فقط
-const result = await getRedirectResult(auth);
+  // زر تسجيل الدخول
+  loginBtn.onclick = () => {
+    status.textContent = "⏳ جاري فتح Google...";
+    signInWithRedirect(auth, provider);
+  };
 
-if (result && result.user) {
-  status.textContent = "✅ تم تسجيل الدخول، جاري التحويل...";
-  window.location.replace("country.html");
-}
+  // هذا السطر للأمان فقط (مش أساسي)
+  await getRedirectResult(auth);
+
+  // 🔴 الحل الأساسي: الاستماع لحالة تسجيل الدخول
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      status.textContent = "✅ تم تسجيل الدخول، جاري التحويل...";
+      window.location.replace("country.html");
+    }
+  });
 </script>
 
 </body>
