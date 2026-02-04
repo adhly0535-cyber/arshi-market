@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>اختيار الدولة</title>
+
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -18,6 +19,7 @@
     }
   </style>
 </head>
+
 <body>
 
 <h2>🌍 اختر دولتك</h2>
@@ -30,18 +32,16 @@
 <button id="saveBtn">متابعة</button>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { 
-  getAuth, 
-  onAuthStateChanged 
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged }
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-import { 
+import {
   getFirestore,
   doc,
   setDoc,
   getDoc
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* إعدادات Firebase */
 const firebaseConfig = {
@@ -61,15 +61,16 @@ const db = getFirestore(app);
 const select = document.getElementById("country");
 const saveBtn = document.getElementById("saveBtn");
 
-/* 🌍 الدول العربية */
+let currentUser = null; // نخزن المستخدم هنا
+
+/* الدول */
 const countries = [
-  "الجزائر", "البحرين", "مصر", "العراق", "الأردن", "الكويت",
-  "لبنان", "ليبيا", "المغرب", "موريتانيا", "عُمان", "فلسطين",
-  "قطر", "السعودية", "السودان", "سوريا", "تونس", "الإمارات",
-  "اليمن"
+  "الجزائر","البحرين","مصر","العراق","الأردن","الكويت",
+  "لبنان","ليبيا","المغرب","موريتانيا","عُمان","فلسطين",
+  "قطر","السعودية","السودان","سوريا","تونس","الإمارات","اليمن"
 ];
 
-/* تعبئة قائمة الدول */
+/* تعبئة القائمة */
 countries.forEach(c => {
   const option = document.createElement("option");
   option.value = c;
@@ -77,12 +78,15 @@ countries.forEach(c => {
   select.appendChild(option);
 });
 
-/* 🔒 حماية الصفحة + تحميل الدولة */
+/* حماية الصفحة + جلب الدولة */
 onAuthStateChanged(auth, async (user) => {
+
   if (!user) {
     window.location.replace("index.html");
     return;
   }
+
+  currentUser = user;
 
   const ref = doc(db, "users", user.uid);
   const snap = await getDoc(ref);
@@ -92,25 +96,25 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
-/* 💾 حفظ الدولة */
+/* حفظ الدولة */
 saveBtn.addEventListener("click", async () => {
+
+  if (!currentUser) return;
+
   const country = select.value;
-  const user = auth.currentUser;
 
   if (!country) {
     alert("من فضلك اختر دولة");
     return;
   }
 
-  if (!user) return;
-
   await setDoc(
-    doc(db, "users", user.uid),
+    doc(db, "users", currentUser.uid),
     { country },
     { merge: true }
   );
 
-  window.location.replace("products.html");
+  window.location.href = "products.html";
 });
 </script>
 
