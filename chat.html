@@ -95,7 +95,6 @@ body{
 
 <body>
 
-<!-- رأس الشات -->
 <div class="header">
   <img id="otherImg" src="https://via.placeholder.com/150">
   <div class="info">
@@ -121,7 +120,8 @@ import { getAuth, onAuthStateChanged } from
 import {
   getFirestore, collection, addDoc,
   query, orderBy, onSnapshot,
-  doc, updateDoc, getDoc
+  doc, updateDoc, getDoc,
+  serverTimestamp   /* ✅ تمت إضافته فقط */
 } from
 "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -141,7 +141,9 @@ const chatBox = document.getElementById("chatBox");
 const otherName = document.getElementById("otherName");
 const otherImg = document.getElementById("otherImg");
 
-/* chatId */
+const msgInput = document.getElementById("msgInput");   /* ✅ إصلاح */
+const sendBtn = document.getElementById("sendBtn");     /* ✅ إصلاح */
+
 const chatId = new URLSearchParams(location.search).get("chatId");
 
 let currentUser;
@@ -153,6 +155,7 @@ onAuthStateChanged(auth, async user=>{
     location.href="index.html";
     return;
   }
+
   currentUser = user;
 
   if(!chatId){
@@ -160,7 +163,6 @@ onAuthStateChanged(auth, async user=>{
     return;
   }
 
-  /* جلب بيانات الشات */
   const chatSnap = await getDoc(doc(db,"chats",chatId));
   if(!chatSnap.exists()){
     otherName.textContent="المحادثة غير موجودة";
@@ -170,14 +172,11 @@ onAuthStateChanged(auth, async user=>{
   const chatData = chatSnap.data();
   otherUserId = chatData.users.find(u=>u!==currentUser.uid);
 
-  /* جلب بيانات المستخدم الآخر */
   const userSnap = await getDoc(doc(db,"users",otherUserId));
   if(userSnap.exists()){
     const u = userSnap.data();
     otherName.textContent = u.name || "مستخدم";
     otherImg.src = u.photo || otherImg.src;
-  }else{
-    otherName.textContent = "مستخدم";
   }
 
   loadMessages();
@@ -207,7 +206,9 @@ function loadMessages(){
 }
 
 /* إرسال */
-document.getElementById("sendBtn").onclick = async ()=>{
+sendBtn.onclick = async ()=>{
+  if(!currentUser) return;
+
   const text = msgInput.value.trim();
   if(!text) return;
 
@@ -216,7 +217,7 @@ document.getElementById("sendBtn").onclick = async ()=>{
     {
       text,
       uid: currentUser.uid,
-      time: Date.now()
+      time: serverTimestamp()   /* ✅ أفضل من Date.now */
     }
   );
 
@@ -224,7 +225,7 @@ document.getElementById("sendBtn").onclick = async ()=>{
     doc(db,"chats",chatId),
     {
       lastMessage:text,
-      lastTime:Date.now()
+      lastTime:serverTimestamp()
     }
   );
 
