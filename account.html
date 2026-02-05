@@ -24,12 +24,28 @@ body{
   padding:20px;
   text-align:center;
 }
-.profile img{
+
+/* ✅ صورة أو حرف */
+.avatar{
   width:90px;
   height:90px;
   border-radius:50%;
-  margin-bottom:10px;
+  margin:0 auto 10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:40px;
+  font-weight:bold;
+  color:#fff;
+  background:#4CAF50;
+  overflow:hidden;
 }
+.avatar img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
 .profile h3{
   margin:5px 0;
 }
@@ -94,7 +110,7 @@ body{
 <div class="header">👤 الحساب</div>
 
 <div class="profile">
-  <img id="userImg" src="https://via.placeholder.com/150">
+  <div class="avatar" id="avatar"></div>
   <h3 id="userName">جاري التحميل...</h3>
   <p id="userCountry">📍 الدولة: --</p>
 </div>
@@ -113,7 +129,7 @@ body{
 
 <div class="bottom-nav">
   <button onclick="go('products.html')">🏠<br>الرئيسية</button>
-  <button onclick="go('chats.html')">💬<br>الشات</button>
+  <button onclick="go('inbox.html')">💬<br>الشات</button>
   <button onclick="go('account.html')">👤<br>الحساب</button>
   <button onclick="go('settings.html')">⚙️<br>الإعدادات</button>
 </div>
@@ -145,13 +161,12 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 const userName = document.getElementById("userName");
-const userImg = document.getElementById("userImg");
+const avatar = document.getElementById("avatar");
 const userCountry = document.getElementById("userCountry");
 
 const country = localStorage.getItem("country") || "غير محددة";
 userCountry.innerText = "📍 الدولة: " + country;
 
-/* تحقق تسجيل الدخول */
 onAuthStateChanged(auth, async user=>{
   if(!user){
     location.href = "index.html";
@@ -159,21 +174,29 @@ onAuthStateChanged(auth, async user=>{
   }
 
   const userRef = doc(db,"users",user.uid);
-  const snap = await getDoc(userRef);
+  let snap = await getDoc(userRef);
 
-  // 🔥 إنشاء المستخدم تلقائيًا إذا غير موجود
   if(!snap.exists()){
     await setDoc(userRef,{
-      name: user.displayName || "مستخدم Arshi",
-      photo: user.photoURL || "https://via.placeholder.com/150",
+      name: user.displayName || "مستخدم",
+      photo: user.photoURL || "",
       createdAt: Date.now()
     });
+    snap = await getDoc(userRef);
   }
 
-  // 🔄 جلب البيانات بعد التأكد من وجودها
-  const data = (await getDoc(userRef)).data();
+  const data = snap.data();
   userName.innerText = data.name;
-  userImg.src = data.photo;
+
+  // ✅ صورة أو حرف أول
+  avatar.innerHTML = "";
+  if(data.photo){
+    const img = document.createElement("img");
+    img.src = data.photo;
+    avatar.appendChild(img);
+  }else{
+    avatar.textContent = data.name.charAt(0).toUpperCase();
+  }
 });
 
 window.logout = async ()=>{
@@ -188,4 +211,4 @@ window.go = page=>{
 </script>
 
 </body>
-</html>
+    </html>
