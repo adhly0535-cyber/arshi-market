@@ -66,6 +66,21 @@ body{
   padding:8px;
   border-radius:10px;
 }
+
+/* 🖼️ صور المنتج */
+.product-images{
+  display:flex;
+  gap:4px;
+  margin-bottom:6px;
+}
+.product-images img{
+  width:32%;
+  height:90px;
+  object-fit:cover;
+  border-radius:6px;
+  cursor:pointer;
+}
+
 .product-card b{
   color:#4CAF50;
 }
@@ -107,6 +122,22 @@ body{
   border-radius:50%;
   font-size:28px;
 }
+
+/* 🔍 تكبير الصورة */
+.image-viewer{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.85);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+}
+.image-viewer img{
+  max-width:95%;
+  max-height:95%;
+  border-radius:10px;
+}
 </style>
 </head>
 
@@ -133,11 +164,16 @@ body{
 
 <button class="add-product-fab" onclick="goAddProduct()">+</button>
 
+<!-- 🔍 عارض الصور -->
+<div class="image-viewer" id="imageViewer" onclick="this.style.display='none'">
+  <img id="viewerImg">
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
   getFirestore, collection, onSnapshot,
-  doc, getDoc, setDoc
+  doc, getDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, onAuthStateChanged }
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -152,18 +188,13 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-
-/* 🔥 التعديل الوحيد هنا */
 let country = localStorage.getItem("country");
 
 onAuthStateChanged(auth, async (user)=>{
-
   if(!user){
     location.href="index.html";
     return;
   }
-
-  // لو الجهاز جديد وما عنده localStorage
   if(!country){
     const snap = await getDoc(doc(db,"users",user.uid));
     if(snap.exists()){
@@ -171,17 +202,12 @@ onAuthStateChanged(auth, async (user)=>{
       localStorage.setItem("country", country);
     }
   }
-
   if(!country){
     location.href="country.html";
     return;
   }
-
   document.getElementById("countryName").innerText = "📍 الدولة: " + country;
 });
-
-
-/* بقية كودك كما هو بدون أي تغيير */
 
 const statesByCountry = {
   "السودان":[
@@ -237,17 +263,24 @@ function showProducts(){
   ).forEach(p=>{
     box.innerHTML+=`
     <div class="product-card">
+      ${p.images && p.images.length ? `
+        <div class="product-images">
+          ${p.images.slice(0,3).map(img=>`
+            <img src="${img}" onclick="viewImage('${img}')">
+          `).join("")}
+        </div>
+      ` : ``}
       <p><b>${p.title}</b></p>
       <p>${p.price}</p>
       <button class="chat-btn"
-        onclick="startChat('${p.id}','${p.ownerId}','${p.title}')">
+        onclick="startChat('${p.id}','${p.userId}','${p.title}')">
         💬 مراسلة
       </button>
     </div>`;
   });
 }
 
-window.startChat = async (productId, sellerId, title)=>{
+window.startChat = (productId, sellerId, title)=>{
   const user = auth.currentUser;
   if(!user){
     location.href="index.html";
@@ -261,6 +294,10 @@ window.startChat = async (productId, sellerId, title)=>{
 <script>
 function go(p){location.href=p;}
 function goAddProduct(){location.href="add-product.html";}
+function viewImage(src){
+  document.getElementById("viewerImg").src = src;
+  document.getElementById("imageViewer").style.display = "flex";
+}
 </script>
 
 </body>
