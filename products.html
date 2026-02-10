@@ -17,7 +17,6 @@ body{
   text-align:center;
   padding:8px;
   font-weight:bold;
-  cursor:pointer;
 }
 .categories{
   display:flex;
@@ -81,6 +80,24 @@ body{
 .product-card b{
   color:#4CAF50;
 }
+.more-btn{
+  margin-top:6px;
+  width:100%;
+  background:#eee;
+  border:none;
+  padding:6px;
+  border-radius:6px;
+  cursor:pointer;
+  font-size:13px;
+}
+.more-info{
+  display:none;
+  background:#fafafa;
+  padding:6px;
+  border-radius:6px;
+  margin-top:6px;
+  font-size:13px;
+}
 .chat-btn{
   margin-top:6px;
   width:100%;
@@ -89,22 +106,6 @@ body{
   border:none;
   padding:6px;
   border-radius:6px;
-  cursor:pointer;
-}
-.bottom-nav{
-  position:fixed;
-  bottom:0;
-  width:100%;
-  background:#fff;
-  display:flex;
-  justify-content:space-around;
-  padding:6px 0;
-  border-top:1px solid #ccc;
-}
-.bottom-nav button{
-  background:none;
-  border:none;
-  font-size:13px;
   cursor:pointer;
 }
 .add-product-fab{
@@ -126,7 +127,6 @@ body{
   display:none;
   align-items:center;
   justify-content:center;
-  z-index:9999;
 }
 .image-viewer img{
   max-width:95%;
@@ -150,14 +150,7 @@ body{
 <div class="states" id="statesBox"></div>
 <div class="products" id="products"></div>
 
-<div class="bottom-nav">
-  <button onclick="go('products.html')">🏠<br>الرئيسية</button>
-  <button onclick="go('inbox.html')">💬<br>الشات</button>
-  <button onclick="go('account.html')">👤<br>الحساب</button>
-  <button onclick="go('settings.html')">⚙️<br>الإعدادات</button>
-</div>
-
-<button class="add-product-fab" onclick="goAddProduct()">+</button>
+<button class="add-product-fab" onclick="location.href='add-product.html'">+</button>
 
 <div class="image-viewer" id="imageViewer" onclick="this.style.display='none'">
   <img id="viewerImg">
@@ -165,24 +158,21 @@ body{
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, onSnapshot, doc, getDoc } 
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { getAuth, onAuthStateChanged } 
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, onSnapshot, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-const firebaseConfig = {
+const app = initializeApp({
   apiKey: "AIzaSyD3hAvhSDs-lX7ORCOR0DODT3l_S_gJA2o",
   authDomain: "arshi-market.firebaseapp.com",
   projectId: "arshi-market",
-};
+});
 
-const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
 let country = localStorage.getItem("country");
-let currentState = localStorage.getItem("selectedState") || "";
-let currentCategory = localStorage.getItem("selectedCategory") || "";
+let currentState = "";
+let currentCategory = "";
 
 onAuthStateChanged(auth, async (user)=>{
   if(!user){ location.href="index.html"; return; }
@@ -193,37 +183,7 @@ onAuthStateChanged(auth, async (user)=>{
       localStorage.setItem("country", country);
     }
   }
-  if(!country){ location.href="country.html"; return; }
   document.getElementById("countryName").innerText = "📍 الدولة: " + country;
-});
-
-const statesByCountry = {
-  "السودان":[
-    "الخرطوم","الجزيرة","نهر النيل","البحر الأحمر","كسلا","القضارف",
-    "سنار","النيل الأبيض","شمال كردفان","جنوب كردفان",
-    "شمال دارفور","جنوب دارفور","غرب دارفور"
-  ],
-  "مصر":[
-    "القاهرة","الجيزة","الإسكندرية","الدقهلية","الشرقية","القليوبية",
-    "كفر الشيخ","الغربية","المنوفية","البحيرة","دمياط","بورسعيد",
-    "الإسماعيلية","السويس","الفيوم","المنيا","أسيوط","سوهاج",
-    "قنا","الأقصر","أسوان","مطروح","الوادي الجديد","شمال سيناء","جنوب سيناء"
-  ]
-};
-
-const statesBox = document.getElementById("statesBox");
-(statesByCountry[country]||[]).forEach(s=>{
-  const b=document.createElement("button");
-  b.textContent=s;
-  if(s===currentState) b.classList.add("active");
-  b.onclick=()=>{
-    document.querySelectorAll(".states button").forEach(x=>x.classList.remove("active"));
-    b.classList.add("active");
-    currentState=s;
-    localStorage.setItem("selectedState", s);
-    showProducts();
-  };
-  statesBox.appendChild(b);
 });
 
 let allProducts=[];
@@ -236,46 +196,60 @@ window.selectCategory=(btn,cat)=>{
   document.querySelectorAll(".categories button").forEach(b=>b.classList.remove("active"));
   btn.classList.add("active");
   currentCategory=cat;
-  localStorage.setItem("selectedCategory", cat);
-  statesBox.style.display="flex";
   showProducts();
 };
 
 function showProducts(){
   const box=document.getElementById("products");
   box.innerHTML="";
-  allProducts.filter(p=>
-    p.country===country &&
-    (!currentCategory || p.category===currentCategory) &&
-    (!currentState || p.state===currentState)
-  ).forEach(p=>{
+
+  allProducts.filter(p=>p.country===country && (!currentCategory || p.category===currentCategory))
+  .forEach(p=>{
+
+    const hasMore = p.description || p.createdAt;
+
     box.innerHTML+=`
     <div class="product-card">
+
       ${p.images?.length?`
       <div class="product-images">
         ${p.images.slice(0,3).map(img=>`
           <img src="${img}" onclick="viewImage('${img}')">
         `).join("")}
       </div>`:""}
+
       <p><b>${p.title}</b></p>
-      <p>${p.price}</p>
-      <button class="chat-btn"
-        onclick="startChat('${p.id}','${p.userId}')">💬 مراسلة</button>
+      <p>💰 ${p.price || "—"}</p>
+      <p>📍 ${p.state || "—"}</p>
+      <p>📂 ${p.category || "—"}</p>
+      <p>📞 ${p.phone || "—"}</p>
+
+      ${hasMore ? `
+      <button class="more-btn" onclick="toggleMore(this)">➕ مزيد</button>
+      <div class="more-info">
+        <p>📝 ${p.description || "لا يوجد وصف"}</p>
+        <p>📅 ${p.createdAt || ""}</p>
+      </div>` : ""}
+
+      <button class="chat-btn" onclick="startChat('${p.id}','${p.userId}')">💬 مراسلة</button>
     </div>`;
   });
 }
 
+window.toggleMore=(btn)=>{
+  const info = btn.nextElementSibling;
+  const open = info.style.display==="block";
+  info.style.display = open ? "none" : "block";
+  btn.innerText = open ? "➕ مزيد" : "➖ إخفاء";
+};
+
 window.startChat=(productId,sellerId)=>{
-  const user=auth.currentUser;
-  if(!user){ location.href="index.html"; return; }
-  const chatId=[productId,user.uid,sellerId].sort().join("_");
+  const chatId=[productId,auth.currentUser.uid,sellerId].sort().join("_");
   location.href="chat.html?chatId="+chatId;
 };
 </script>
 
 <script>
-function go(p){location.href=p;}
-function goAddProduct(){location.href="add-product.html";}
 function viewImage(src){
   viewerImg.src=src;
   imageViewer.style.display="flex";
@@ -283,4 +257,4 @@ function viewImage(src){
 </script>
 
 </body>
-  </html>
+</html>
