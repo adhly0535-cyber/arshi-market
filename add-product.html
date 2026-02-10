@@ -73,12 +73,8 @@ button{
   <!-- الحقول المتغيرة -->
   <div id="extraFields"></div>
 
-  <!-- حقول عامة -->
-  <input id="phone" placeholder="رقم التواصل">
-  <input id="address" placeholder="العنوان التفصيلي">
-
-  <textarea id="desc" placeholder="الوصف التفصيلي" required></textarea>
-  <textarea id="notes" placeholder="ملاحظات إضافية"></textarea>
+  <!-- الوصف فقط -->
+  <textarea id="desc" placeholder="وصف المنتج" required></textarea>
 
   <button type="submit">📤 نشر المنتج</button>
 </form>
@@ -182,16 +178,14 @@ form.addEventListener("submit", async (e)=>{
   }
 
   const user = auth.currentUser;
-  const imageUrls = imagesInput.value.split(",")
+  const imageUrls = imagesInput.value
+    .split(",")
     .map(id=>`https://ucarecdn.com/${id}/`);
 
   await addDoc(collection(db,"products"),{
     title: title.value,
     price: price.value,
     desc: desc.value,
-    notes: notes.value,
-    phone: phone.value,
-    address: address.value,
     state: stateInput.value,
     city: city.value,
     category: typeSelect.value,
@@ -220,7 +214,7 @@ form.addEventListener("submit", async (e)=>{
     extraTech: extraTech?.value || "",
 
     images: imageUrls,
-    userId: user.uid,
+    userId: user ? user.uid : "guest",
     createdAt: serverTimestamp()
   });
 
@@ -231,4 +225,4 @@ form.addEventListener("submit", async (e)=>{
 </script>
 
 </body>
-    </html>
+</html>
