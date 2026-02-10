@@ -2,7 +2,7 @@
 <html lang="ar">
 <head>
 <meta charset="UTF-8">
-<title>Messenger</title>
+<title>الشات</title>
 
 <style>
 body{
@@ -46,6 +46,7 @@ body{
   color:#fff;
   padding:10px;
   display:flex;
+  align-items:center;
   gap:10px;
 }
 .header img{
@@ -84,6 +85,18 @@ button{
   border:none;
   padding:10px 16px;
   border-radius:20px;
+  cursor:pointer;
+}
+.backBtn{
+  background:none;
+  border:none;
+  color:#fff;
+  font-size:18px;
+  cursor:pointer;
+}
+.last-seen{
+  font-size:12px;
+  opacity:.8;
 }
 </style>
 </head>
@@ -96,8 +109,12 @@ button{
 <!-- الشات -->
 <div id="chatArea">
   <div class="header">
+    <button class="backBtn" onclick="location.href='products.html'">⬅</button>
     <img id="otherImg">
-    <div id="otherName"></div>
+    <div>
+      <div id="otherName"></div>
+      <div id="lastSeen" class="last-seen"></div>
+    </div>
   </div>
 
   <div class="chat-box" id="chatBox"></div>
@@ -131,6 +148,7 @@ const chatArea=document.getElementById("chatArea");
 const chatBox=document.getElementById("chatBox");
 const otherName=document.getElementById("otherName");
 const otherImg=document.getElementById("otherImg");
+const lastSeen=document.getElementById("lastSeen");
 const msgInput=document.getElementById("msgInput");
 const sendBtn=document.getElementById("sendBtn");
 
@@ -138,10 +156,26 @@ let currentUser;
 let currentChatId;
 let unsubscribeMessages=null;
 
-onAuthStateChanged(auth,user=>{
-  if(!user){location.href="index.html";return;}
+onAuthStateChanged(auth,async user=>{
+  if(!user){ location.href="index.html"; return; }
   currentUser=user;
+
+  // تحديث آخر ظهور
+  await updateDoc(doc(db,"users",user.uid),{
+    online:true,
+    lastSeen:serverTimestamp()
+  });
+
   loadChats();
+});
+
+window.addEventListener("beforeunload",()=>{
+  if(currentUser){
+    updateDoc(doc(db,"users",currentUser.uid),{
+      online:false,
+      lastSeen:serverTimestamp()
+    });
+  }
 });
 
 /* تحميل المحادثات */
@@ -183,6 +217,7 @@ function openChat(chatId,user){
   chatArea.style.display="flex";
   otherName.textContent=user.name;
   otherImg.src=user.photo||"https://via.placeholder.com/100";
+  lastSeen.textContent = user.online ? "متصل الآن" : "غير متصل";
 
   if(unsubscribeMessages) unsubscribeMessages();
 
@@ -195,9 +230,15 @@ function openChat(chatId,user){
     chatBox.innerHTML="";
     snap.forEach(d=>{
       const m=d.data();
+
+      // تعليم الرسائل كمقروءة
+      if(m.uid!==currentUser.uid && !m.seen){
+        updateDoc(d.ref,{ seen:true });
+      }
+
       const div=document.createElement("div");
       div.className="message "+(m.uid===currentUser.uid?"me":"other");
-      div.textContent=m.text;
+      div.textContent = m.text + (m.uid===currentUser.uid && m.seen ? " ✓✓" : "");
       chatBox.appendChild(div);
     });
     chatBox.scrollTop=chatBox.scrollHeight;
@@ -215,7 +256,8 @@ sendBtn.onclick=async()=>{
     {
       text,
       uid:currentUser.uid,
-      time:serverTimestamp()
+      time:serverTimestamp(),
+      seen:false
     }
   );
 
