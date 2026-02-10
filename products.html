@@ -18,37 +18,21 @@ body{
   padding:8px;
   font-weight:bold;
 }
-.categories{
+.categories, .states{
   display:flex;
   gap:8px;
   padding:10px;
   background:#fff;
   overflow-x:auto;
 }
-.categories button{
+.categories button, .states button{
   border:none;
   background:#eee;
   padding:8px 14px;
   border-radius:20px;
   cursor:pointer;
 }
-.categories button.active{
-  background:#4CAF50;
-  color:#fff;
-}
-.states{
-  display:none;
-  gap:8px;
-  padding:10px;
-  background:#fff;
-  overflow-x:auto;
-}
-.states button{
-  border:none;
-  background:#ddd;
-  padding:6px 14px;
-  border-radius:20px;
-}
+.categories button.active,
 .states button.active{
   background:#4CAF50;
   color:#fff;
@@ -75,16 +59,27 @@ body{
   border-radius:6px;
   cursor:pointer;
 }
-.product-card h4{
-  margin:6px 0 2px;
-}
-.product-card .price{
+.price{
   color:#4CAF50;
   font-weight:bold;
 }
 .product-info{
   font-size:12px;
   color:#555;
+}
+.more-btn{
+  background:none;
+  border:none;
+  color:#4CAF50;
+  cursor:pointer;
+  font-size:12px;
+  margin-top:4px;
+}
+.extra-details{
+  display:none;
+  font-size:12px;
+  color:#444;
+  margin-top:4px;
 }
 .chat-btn{
   width:100%;
@@ -146,11 +141,10 @@ body{
   <button onclick="selectCategory(this,'سيارات')">🚗 سيارات</button>
   <button onclick="selectCategory(this,'عقارات')">🏢 عقارات</button>
   <button onclick="selectCategory(this,'وظائف')">🧑‍💼 وظائف</button>
-  <button onclick="selectCategory(this,'إلكترونيات')">📱💻 إلكترونيات</button>
+  <button onclick="selectCategory(this,'إلكترونيات')">📱 إلكترونيات</button>
 </div>
 
 <div class="states" id="statesBox"></div>
-
 <div class="products" id="products"></div>
 
 <button class="add-product-fab" onclick="goAddProduct()">+</button>
@@ -185,18 +179,7 @@ let country = localStorage.getItem("country");
 let currentCategory="";
 let currentState="";
 
-onAuthStateChanged(auth, async(user)=>{
-  if(!user){ location.href="index.html"; return; }
-  if(!country){
-    const snap = await getDoc(doc(db,"users",user.uid));
-    if(snap.exists()){
-      country = snap.data().country;
-      localStorage.setItem("country",country);
-    }
-  }
-  document.getElementById("countryName").innerText="📍 الدولة: "+country;
-});
-
+/* ✅ هنا التعديل الوحيد */
 const statesByCountry = {
   "السودان":[
     "الخرطوم","الجزيرة","نهر النيل","البحر الأحمر","كسلا","القضارف",
@@ -211,17 +194,30 @@ const statesByCountry = {
   ]
 };
 
-const statesBox=document.getElementById("statesBox");
-(statesByCountry[country]||[]).forEach(s=>{
-  const b=document.createElement("button");
-  b.textContent=s;
-  b.onclick=()=>{
-    document.querySelectorAll(".states button").forEach(x=>x.classList.remove("active"));
-    b.classList.add("active");
-    currentState=s;
-    showProducts();
-  };
-  statesBox.appendChild(b);
+onAuthStateChanged(auth, async(user)=>{
+  if(!user){ location.href="index.html"; return; }
+  if(!country){
+    const snap = await getDoc(doc(db,"users",user.uid));
+    if(snap.exists()){
+      country = snap.data().country;
+      localStorage.setItem("country",country);
+    }
+  }
+  document.getElementById("countryName").innerText="📍 الدولة: "+country;
+
+  const statesBox=document.getElementById("statesBox");
+  statesBox.innerHTML="";
+  (statesByCountry[country]||[]).forEach(s=>{
+    const b=document.createElement("button");
+    b.textContent=s;
+    b.onclick=()=>{
+      document.querySelectorAll(".states button").forEach(x=>x.classList.remove("active"));
+      b.classList.add("active");
+      currentState=s;
+      showProducts();
+    };
+    statesBox.appendChild(b);
+  });
 });
 
 let allProducts=[];
@@ -234,7 +230,6 @@ window.selectCategory=(btn,cat)=>{
   document.querySelectorAll(".categories button").forEach(b=>b.classList.remove("active"));
   btn.classList.add("active");
   currentCategory=cat;
-  statesBox.style.display="flex";
   showProducts();
 };
 
@@ -246,6 +241,7 @@ function showProducts(){
     (!currentCategory || p.category===currentCategory) &&
     (!currentState || p.state===currentState)
   ).forEach(p=>{
+    const hasDetails=p.details && Object.keys(p.details).length;
     box.innerHTML+=`
     <div class="product-card">
       <div class="product-images">
@@ -253,16 +249,33 @@ function showProducts(){
           <img src="${img}" onclick="viewImage('${img}')">
         `).join("")}
       </div>
-      <h4>${p.title}</h4>
+
+      <b>${p.title}</b>
       <div class="price">${p.price}</div>
+
       <div class="product-info">
-        📍 ${p.state}<br>
-        👤 ${p.phone || ""}
+        📂 ${p.category}<br>
+        ⏱ ${new Date(p.createdAt?.seconds*1000).toLocaleDateString()}<br>
+        👤 بائع #${p.userId.slice(0,4)}
       </div>
+
+      ${hasDetails?`
+        <button class="more-btn" onclick="toggleMore('${p.id}',this)">مزيد</button>
+        <div class="extra-details" id="ex_${p.id}">
+          ${Object.entries(p.details).map(([k,v])=>`• ${k}: ${v}<br>`).join("")}
+        </div>`:""}
+
       <button class="chat-btn" onclick="startChat('${p.id}','${p.userId}')">💬 مراسلة</button>
     </div>`;
   });
 }
+
+window.toggleMore=(id,btn)=>{
+  const el=document.getElementById("ex_"+id);
+  const open=el.style.display==="block";
+  el.style.display=open?"none":"block";
+  btn.textContent=open?"مزيد":"إخفاء";
+};
 
 window.startChat=(pid,seller)=>{
   const user=auth.currentUser;
@@ -275,8 +288,8 @@ window.viewImage=(src)=>{
   imageViewer.style.display="flex";
 };
 
-window.go=(p)=>location.href=p;
+window.go=p=>location.href=p;
 window.goAddProduct=()=>location.href="add-product.html";
 </script>
 </body>
-    </html>
+</html>
