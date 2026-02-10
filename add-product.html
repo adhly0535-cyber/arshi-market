@@ -6,7 +6,7 @@
 
 <!-- Uploadcare -->
 <script>
-  UPLOADCARE_PUBLIC_KEY = "3ebd7495cde73c075c2e";
+UPLOADCARE_PUBLIC_KEY = "3ebd7495cde73c075c2e";
 </script>
 <script src="https://ucarecdn.com/libs/widget/3.x/uploadcare.full.min.js"></script>
 
@@ -50,11 +50,6 @@ button{
   <!-- الولاية -->
   <select id="city" required>
     <option value="">اختر الولاية / المدينة</option>
-    <option value="الخرطوم">الخرطوم</option>
-    <option value="أم درمان">أم درمان</option>
-    <option value="بحري">بحري</option>
-    <option value="مدني">مدني</option>
-    <option value="كسلا">كسلا</option>
   </select>
 
   <input id="title" placeholder="عنوان الإعلان" required>
@@ -66,9 +61,8 @@ button{
     <option value="مستعمل">مستعمل</option>
   </select>
 
-  <!-- الصور (حد أقصى 3) -->
-  <input
-    type="hidden"
+  <!-- الصور -->
+  <input type="hidden"
     role="uploadcare-uploader"
     data-multiple="true"
     data-max-files="3"
@@ -79,7 +73,12 @@ button{
   <!-- الحقول المتغيرة -->
   <div id="extraFields"></div>
 
-  <textarea id="desc" placeholder="الوصف" required></textarea>
+  <!-- حقول عامة -->
+  <input id="phone" placeholder="رقم التواصل">
+  <input id="address" placeholder="العنوان التفصيلي">
+
+  <textarea id="desc" placeholder="الوصف التفصيلي" required></textarea>
+  <textarea id="notes" placeholder="ملاحظات إضافية"></textarea>
 
   <button type="submit">📤 نشر المنتج</button>
 </form>
@@ -89,7 +88,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-/* Firebase */
 const firebaseConfig = {
   apiKey: "AIzaSyD3hAvhSDs-lX7ORCOR0DODT3l_S_gJA2o",
   authDomain: "arshi-market.firebaseapp.com",
@@ -100,87 +98,137 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-/* عناصر */
-const form = document.getElementById("productForm");
-const imagesInput = document.getElementById("imagesInput");
+/* الولايات */
+const statesByCountry = {
+  "السودان":[
+    "الخرطوم","الجزيرة","نهر النيل","البحر الأحمر","كسلا","القضارف",
+    "سنار","النيل الأبيض","شمال كردفان","جنوب كردفان",
+    "شمال دارفور","جنوب دارفور","غرب دارفور"
+  ],
+  "مصر":[
+    "القاهرة","الجيزة","الإسكندرية","الدقهلية","الشرقية","القليوبية",
+    "كفر الشيخ","الغربية","المنوفية","البحيرة","دمياط","بورسعيد",
+    "الإسماعيلية","السويس","الفيوم","المنيا","أسيوط","سوهاج",
+    "قنا","الأقصر","أسوان","مطروح","الوادي الجديد","شمال سيناء","جنوب سيناء"
+  ]
+};
+
+const country = localStorage.getItem("country");
+const citySelect = document.getElementById("city");
+
+(statesByCountry[country] || []).forEach(c=>{
+  const o = document.createElement("option");
+  o.value = c;
+  o.textContent = c;
+  citySelect.appendChild(o);
+});
+
+/* الحقول حسب النوع */
 const typeSelect = document.getElementById("typeSelect");
 const extra = document.getElementById("extraFields");
 
-/* الحقول حسب النوع */
-typeSelect.addEventListener("change", () => {
+typeSelect.addEventListener("change", ()=>{
   extra.innerHTML = "";
 
   if(typeSelect.value === "سيارات"){
     extra.innerHTML = `
       <input id="model" placeholder="الموديل">
       <input id="year" placeholder="سنة الصنع">
+      <input id="km" placeholder="عدد الكيلومترات">
+      <input id="gear" placeholder="ناقل الحركة">
+      <input id="fuel" placeholder="نوع الوقود">
     `;
   }
 
   if(typeSelect.value === "عقارات"){
     extra.innerHTML = `
       <input id="rooms" placeholder="عدد الغرف">
+      <input id="bathrooms" placeholder="عدد الحمامات">
       <input id="area" placeholder="المساحة">
+      <input id="floor" placeholder="الطابق">
+      <input id="furnished" placeholder="مفروش / لا">
     `;
   }
 
   if(typeSelect.value === "وظائف"){
     extra.innerHTML = `
       <input id="jobType" placeholder="نوع الوظيفة">
+      <input id="experience" placeholder="سنوات الخبرة">
       <input id="salary" placeholder="الراتب">
+      <input id="workPlace" placeholder="مكان العمل">
     `;
   }
 
   if(typeSelect.value === "هواتف" || typeSelect.value === "لابتوبات"){
     extra.innerHTML = `
       <input id="brand" placeholder="الشركة">
-      <input id="storage" placeholder="المساحة">
+      <input id="storage" placeholder="التخزين">
+      <input id="ram" placeholder="الرام">
+      <input id="extraTech" placeholder="مواصفات إضافية">
     `;
   }
 });
 
-/* النشر (بدون تعقيد – أي مستخدم) */
-form.addEventListener("submit", async (e) => {
+/* النشر */
+const form = document.getElementById("productForm");
+const imagesInput = document.getElementById("imagesInput");
+
+form.addEventListener("submit", async (e)=>{
   e.preventDefault();
 
-  if (!imagesInput.value) {
-    alert("يرجى رفع صورة واحدة على الأقل");
+  if(!imagesInput.value){
+    alert("يرجى إضافة صورة واحدة على الأقل");
     return;
   }
 
   const user = auth.currentUser;
+  const imageUrls = imagesInput.value.split(",")
+    .map(id=>`https://ucarecdn.com/${id}/`);
 
-  const imageUrls = imagesInput.value
-    .split(",")
-    .map(uuid => `https://ucarecdn.com/${uuid}/`);
-
-  await addDoc(collection(db, "products"), {
+  await addDoc(collection(db,"products"),{
     title: title.value,
     price: price.value,
     desc: desc.value,
+    notes: notes.value,
+    phone: phone.value,
+    address: address.value,
     state: stateInput.value,
-    type: typeSelect.value,
     city: city.value,
+    category: typeSelect.value,
+    country: country,
 
-    model: document.getElementById("model")?.value || "",
-    year: document.getElementById("year")?.value || "",
-    rooms: document.getElementById("rooms")?.value || "",
-    area: document.getElementById("area")?.value || "",
-    jobType: document.getElementById("jobType")?.value || "",
-    salary: document.getElementById("salary")?.value || "",
-    brand: document.getElementById("brand")?.value || "",
-    storage: document.getElementById("storage")?.value || "",
+    model: model?.value || "",
+    year: year?.value || "",
+    km: km?.value || "",
+    gear: gear?.value || "",
+    fuel: fuel?.value || "",
+
+    rooms: rooms?.value || "",
+    bathrooms: bathrooms?.value || "",
+    area: area?.value || "",
+    floor: floor?.value || "",
+    furnished: furnished?.value || "",
+
+    jobType: jobType?.value || "",
+    experience: experience?.value || "",
+    salary: salary?.value || "",
+    workPlace: workPlace?.value || "",
+
+    brand: brand?.value || "",
+    storage: storage?.value || "",
+    ram: ram?.value || "",
+    extraTech: extraTech?.value || "",
 
     images: imageUrls,
-    userId: user ? user.uid : "guest",
+    userId: user.uid,
     createdAt: serverTimestamp()
   });
 
   alert("✅ تم نشر المنتج");
   form.reset();
-  extra.innerHTML = "";
+  extra.innerHTML="";
 });
 </script>
 
 </body>
-  </html>
+    </html>
