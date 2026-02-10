@@ -24,8 +24,6 @@ body{
   padding:20px;
   text-align:center;
 }
-
-/* ✅ صورة أو حرف */
 .avatar{
   width:90px;
   height:90px;
@@ -45,14 +43,9 @@ body{
   height:100%;
   object-fit:cover;
 }
+.profile h3{ margin:5px 0; }
+.profile p{ color:#555; font-size:14px; }
 
-.profile h3{
-  margin:5px 0;
-}
-.profile p{
-  color:#555;
-  font-size:14px;
-}
 .section{
   background:#fff;
   margin:10px;
@@ -69,12 +62,9 @@ body{
   cursor:pointer;
   border-bottom:1px solid #eee;
 }
-.section button:last-child{
-  border-bottom:none;
-}
-.section button:hover{
-  background:#f2f2f2;
-}
+.section button:last-child{ border-bottom:none; }
+.section button:hover{ background:#f2f2f2; }
+
 .logout{
   background:#ff4d4d;
   color:#fff;
@@ -86,6 +76,7 @@ body{
   font-size:15px;
   cursor:pointer;
 }
+
 .bottom-nav{
   position:fixed;
   bottom:0;
@@ -112,7 +103,7 @@ body{
 <div class="profile">
   <div class="avatar" id="avatar"></div>
   <h3 id="userName">جاري التحميل...</h3>
-  <p id="userCountry">📍 الدولة: --</p>
+  <p id="userCountry">📍 الدولة: ...</p>
 </div>
 
 <div class="section">
@@ -135,21 +126,10 @@ body{
 </div>
 
 <script type="module">
-import { initializeApp } from
-"https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-import { getAuth, onAuthStateChanged, signOut } from
-"https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-import {
-  getFirestore,
-  doc,
-  getDoc,
-  setDoc
-} from
-"https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-/* Firebase */
 const firebaseConfig = {
   apiKey: "AIzaSyD3hAvhSDs-lX7ORCOR0DODT3l_S_gJA2o",
   authDomain: "arshi-market.firebaseapp.com",
@@ -164,51 +144,49 @@ const userName = document.getElementById("userName");
 const avatar = document.getElementById("avatar");
 const userCountry = document.getElementById("userCountry");
 
-const country = localStorage.getItem("country") || "غير محددة";
-userCountry.innerText = "📍 الدولة: " + country;
-
 onAuthStateChanged(auth, async user=>{
   if(!user){
-    location.href = "index.html";
+    location.href="index.html";
     return;
   }
 
-  const userRef = doc(db,"users",user.uid);
-  let snap = await getDoc(userRef);
+  const ref = doc(db,"users",user.uid);
+  let snap = await getDoc(ref);
 
   if(!snap.exists()){
-    await setDoc(userRef,{
+    await setDoc(ref,{
+      uid: user.uid,
+      email: user.email,
       name: user.displayName || "مستخدم",
       photo: user.photoURL || "",
       createdAt: Date.now()
     });
-    snap = await getDoc(userRef);
+    snap = await getDoc(ref);
   }
 
   const data = snap.data();
-  userName.innerText = data.name;
 
-  // ✅ صورة أو حرف أول
-  avatar.innerHTML = "";
+  userName.innerText = data.name;
+  userCountry.innerText = "📍 الدولة: " + (data.country || "غير محددة");
+
+  avatar.innerHTML="";
   if(data.photo){
-    const img = document.createElement("img");
-    img.src = data.photo;
+    const img=document.createElement("img");
+    img.src=data.photo;
     avatar.appendChild(img);
   }else{
-    avatar.textContent = data.name.charAt(0).toUpperCase();
+    avatar.textContent=data.name.charAt(0).toUpperCase();
   }
 });
 
 window.logout = async ()=>{
   await signOut(auth);
-  localStorage.removeItem("country");
-  location.href = "index.html";
+  localStorage.clear();
+  location.href="index.html";
 };
 
-window.go = page=>{
-  location.href = page;
-};
+window.go = p=>location.href=p;
 </script>
 
 </body>
-    </html>
+</html>
