@@ -17,6 +17,7 @@ body{
   text-align:center;
   padding:8px;
   font-weight:bold;
+  cursor:pointer;
 }
 .categories{
   display:flex;
@@ -38,21 +39,6 @@ body{
 }
 .states{
   display:none;
-  gap:8px;
-  padding:10px;
-  background:#fff;
-  overflow-x:auto;
-}
-.states button{
-  border:none;
-  background:#ddd;
-  padding:6px 14px;
-  border-radius:20px;
-  cursor:pointer;
-}
-.states button.active{
-  background:#4CAF50;
-  color:#fff;
 }
 .products{
   padding:10px;
@@ -77,18 +63,15 @@ body{
   border-radius:6px;
   cursor:pointer;
 }
-.product-card b{
-  color:#4CAF50;
-}
+.product-card b{color:#4CAF50;}
 .more-btn{
-  margin-top:6px;
   width:100%;
+  margin-top:6px;
   background:#eee;
   border:none;
   padding:6px;
   border-radius:6px;
   cursor:pointer;
-  font-size:13px;
 }
 .more-info{
   display:none;
@@ -106,6 +89,22 @@ body{
   border:none;
   padding:6px;
   border-radius:6px;
+  cursor:pointer;
+}
+.bottom-nav{
+  position:fixed;
+  bottom:0;
+  width:100%;
+  background:#fff;
+  display:flex;
+  justify-content:space-around;
+  padding:6px 0;
+  border-top:1px solid #ccc;
+}
+.bottom-nav button{
+  background:none;
+  border:none;
+  font-size:13px;
   cursor:pointer;
 }
 .add-product-fab{
@@ -127,6 +126,7 @@ body{
   display:none;
   align-items:center;
   justify-content:center;
+  z-index:9999;
 }
 .image-viewer img{
   max-width:95%;
@@ -147,13 +147,19 @@ body{
   <button onclick="selectCategory(this,'هواتف + حواسيب')">📱💻 هواتف + حواسيب</button>
 </div>
 
-<div class="states" id="statesBox"></div>
 <div class="products" id="products"></div>
 
-<button class="add-product-fab" onclick="location.href='add-product.html'">+</button>
+<button class="add-product-fab" onclick="goAddProduct()">+</button>
 
 <div class="image-viewer" id="imageViewer" onclick="this.style.display='none'">
   <img id="viewerImg">
+</div>
+
+<div class="bottom-nav">
+  <button onclick="go('home.html')">🏠<br>الرئيسية</button>
+  <button onclick="go('chats.html')">💬<br>الشات</button>
+  <button onclick="go('profile.html')">👤<br>الحساب</button>
+  <button onclick="go('settings.html')">⚙️<br>الإعدادات</button>
 </div>
 
 <script type="module">
@@ -162,28 +168,26 @@ import { getFirestore, collection, onSnapshot, doc, getDoc } from "https://www.g
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const app = initializeApp({
-  apiKey: "AIzaSyD3hAvhSDs-lX7ORCOR0DODT3l_S_gJA2o",
-  authDomain: "arshi-market.firebaseapp.com",
-  projectId: "arshi-market",
+  apiKey:"AIzaSyD3hAvhSDs-lX7ORCOR0DODT3l_S_gJA2o",
+  authDomain:"arshi-market.firebaseapp.com",
+  projectId:"arshi-market",
 });
+const db=getFirestore(app);
+const auth=getAuth(app);
 
-const db = getFirestore(app);
-const auth = getAuth(app);
+let country=localStorage.getItem("country");
+let currentCategory=localStorage.getItem("selectedCategory")||"";
 
-let country = localStorage.getItem("country");
-let currentState = "";
-let currentCategory = "";
-
-onAuthStateChanged(auth, async (user)=>{
-  if(!user){ location.href="index.html"; return; }
+onAuthStateChanged(auth,async user=>{
+  if(!user){location.href="index.html";return;}
   if(!country){
-    const snap = await getDoc(doc(db,"users",user.uid));
-    if(snap.exists()){
-      country = snap.data().country;
-      localStorage.setItem("country", country);
+    const s=await getDoc(doc(db,"users",user.uid));
+    if(s.exists()){
+      country=s.data().country;
+      localStorage.setItem("country",country);
     }
   }
-  document.getElementById("countryName").innerText = "📍 الدولة: " + country;
+  document.getElementById("countryName").innerText="📍 الدولة: "+country;
 });
 
 let allProducts=[];
@@ -196,65 +200,78 @@ window.selectCategory=(btn,cat)=>{
   document.querySelectorAll(".categories button").forEach(b=>b.classList.remove("active"));
   btn.classList.add("active");
   currentCategory=cat;
+  localStorage.setItem("selectedCategory",cat);
   showProducts();
 };
 
 function showProducts(){
   const box=document.getElementById("products");
   box.innerHTML="";
-
-  allProducts.filter(p=>p.country===country && (!currentCategory || p.category===currentCategory))
+  allProducts
+  .filter(p=>p.country===country && (!currentCategory||p.category===currentCategory))
   .forEach(p=>{
-
-    const hasMore = p.description || p.createdAt;
+    const extra=getExtraDetails(p);
+    const hasMore=extra.length>0;
 
     box.innerHTML+=`
     <div class="product-card">
-
       ${p.images?.length?`
       <div class="product-images">
-        ${p.images.slice(0,3).map(img=>`
-          <img src="${img}" onclick="viewImage('${img}')">
-        `).join("")}
+        ${p.images.slice(0,3).map(i=>`<img src="${i}" onclick="viewImage('${i}')">`).join("")}
       </div>`:""}
 
       <p><b>${p.title}</b></p>
-      <p>💰 ${p.price || "—"}</p>
-      <p>📍 ${p.state || "—"}</p>
-      <p>📂 ${p.category || "—"}</p>
-      <p>📞 ${p.phone || "—"}</p>
+      <p>💰 ${p.price||"—"}</p>
+      <p>📂 ${p.category||"—"}</p>
+      <p>⏱ ${p.createdAt || "حديثًا"}</p>
 
-      ${hasMore ? `
+      ${hasMore?`
       <button class="more-btn" onclick="toggleMore(this)">➕ مزيد</button>
-      <div class="more-info">
-        <p>📝 ${p.description || "لا يوجد وصف"}</p>
-        <p>📅 ${p.createdAt || ""}</p>
-      </div>` : ""}
+      <div class="more-info">${extra.join("")}</div>`:""}
 
       <button class="chat-btn" onclick="startChat('${p.id}','${p.userId}')">💬 مراسلة</button>
     </div>`;
   });
 }
 
-window.toggleMore=(btn)=>{
-  const info = btn.nextElementSibling;
-  const open = info.style.display==="block";
-  info.style.display = open ? "none" : "block";
-  btn.innerText = open ? "➕ مزيد" : "➖ إخفاء";
-};
-
-window.startChat=(productId,sellerId)=>{
-  const chatId=[productId,auth.currentUser.uid,sellerId].sort().join("_");
-  location.href="chat.html?chatId="+chatId;
-};
-</script>
-
-<script>
-function viewImage(src){
-  viewerImg.src=src;
-  imageViewer.style.display="flex";
+function getExtraDetails(p){
+  const d=[];
+  if(p.category==="سيارات"){
+    if(p.model)d.push(`🚗 موديل: ${p.model}<br>`);
+    if(p.year)d.push(`📅 سنة: ${p.year}<br>`);
+  }
+  if(p.category==="عقارات"){
+    if(p.type)d.push(`🏢 نوع: ${p.type}<br>`);
+    if(p.rooms)d.push(`🛏 غرف: ${p.rooms}<br>`);
+  }
+  if(p.category==="وظائف"){
+    if(p.company)d.push(`🏢 شركة: ${p.company}<br>`);
+    if(p.jobType)d.push(`⏱ دوام: ${p.jobType}<br>`);
+  }
+  if(p.category==="هواتف + حواسيب"){
+    if(p.brand)d.push(`📱 النوع: ${p.brand}<br>`);
+    if(p.storage)d.push(`💾 سعة: ${p.storage}<br>`);
+  }
+  if(p.description)d.push(`📝 ${p.description}`);
+  return d;
 }
+
+window.toggleMore=btn=>{
+  const box=btn.nextElementSibling;
+  const open=box.style.display==="block";
+  box.style.display=open?"none":"block";
+  btn.innerText=open?"➕ مزيد":"➖ إخفاء";
+};
+
+window.startChat=(pid,uid)=>{
+  const me=auth.currentUser;
+  if(!me)return;
+  location.href="chat.html?chatId="+[pid,me.uid,uid].sort().join("_");
+};
+window.viewImage=s=>{viewerImg.src=s;imageViewer.style.display="flex";}
+window.go=p=>location.href=p;
+window.goAddProduct=()=>location.href="add-product.html";
 </script>
 
 </body>
-</html>
+  </html>
