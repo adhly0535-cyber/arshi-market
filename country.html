@@ -61,7 +61,7 @@ const db = getFirestore(app);
 const select = document.getElementById("country");
 const saveBtn = document.getElementById("saveBtn");
 
-let currentUser = null; // نخزن المستخدم هنا
+let currentUser = null;
 
 /* الدول */
 const countries = [
@@ -110,7 +110,11 @@ saveBtn.addEventListener("click", async () => {
 
   await setDoc(
     doc(db, "users", currentUser.uid),
-    { country },
+    {
+      uid: currentUser.uid,
+      email: currentUser.email,
+      country: country
+    },
     { merge: true }
   );
 
