@@ -150,7 +150,7 @@ body{
 <button class="add-product-fab" onclick="goAddProduct()">+</button>
 
 <div class="bottom-nav">
-  <button onclick="go('home.html')">🏠<br>الرئيسية</button>
+  <button onclick="go('products.html')">🏠<br>الرئيسية</button>
   <button onclick="go('chats.html')">💬<br>الشات</button>
   <button onclick="go('account.html')">👤<br>الحساب</button>
   <button onclick="go('settings.html')">⚙️<br>الإعدادات</button>
@@ -175,11 +175,10 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-let country = localStorage.getItem("country");
-let currentCategory="";
-let currentState="";
+let country = "";
+let currentCategory = "";
+let currentState = "";
 
-/* ✅ هنا التعديل الوحيد */
 const statesByCountry = {
   "السودان":[
     "الخرطوم","الجزيرة","نهر النيل","البحر الأحمر","كسلا","القضارف",
@@ -195,19 +194,29 @@ const statesByCountry = {
 };
 
 onAuthStateChanged(auth, async(user)=>{
-  if(!user){ location.href="index.html"; return; }
-  if(!country){
-    const snap = await getDoc(doc(db,"users",user.uid));
-    if(snap.exists()){
-      country = snap.data().country;
-      localStorage.setItem("country",country);
-    }
+  if(!user){
+    location.href="index.html";
+    return;
   }
-  document.getElementById("countryName").innerText="📍 الدولة: "+country;
 
-  const statesBox=document.getElementById("statesBox");
-  statesBox.innerHTML="";
-  (statesByCountry[country]||[]).forEach(s=>{
+  const snap = await getDoc(doc(db,"users",user.uid));
+  if(!snap.exists() || !snap.data().country){
+    location.href="country.html";
+    return;
+  }
+
+  country = snap.data().country;
+  localStorage.setItem("country", country);
+
+  currentCategory = "";
+  currentState = "";
+
+  document.getElementById("countryName").innerText = "📍 الدولة: " + country;
+
+  const statesBox = document.getElementById("statesBox");
+  statesBox.innerHTML = "";
+
+  (statesByCountry[country] || []).forEach(s=>{
     const b=document.createElement("button");
     b.textContent=s;
     b.onclick=()=>{
@@ -256,7 +265,7 @@ function showProducts(){
       <div class="product-info">
         📂 ${p.category}<br>
         ⏱ ${new Date(p.createdAt?.seconds*1000).toLocaleDateString()}<br>
-        👤 بائع #${p.userId.slice(0,4)}
+        👤 بائع #${p.userId?.slice(0,4)}
       </div>
 
       ${hasDetails?`
@@ -292,4 +301,4 @@ window.go=p=>location.href=p;
 window.goAddProduct=()=>location.href="add-product.html";
 </script>
 </body>
-</html>
+  </html>
