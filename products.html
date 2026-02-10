@@ -17,7 +17,6 @@ body{
   text-align:center;
   padding:8px;
   font-weight:bold;
-  cursor:pointer;
 }
 .categories{
   display:flex;
@@ -39,11 +38,25 @@ body{
 }
 .states{
   display:none;
+  gap:8px;
+  padding:10px;
+  background:#fff;
+  overflow-x:auto;
+}
+.states button{
+  border:none;
+  background:#ddd;
+  padding:6px 14px;
+  border-radius:20px;
+}
+.states button.active{
+  background:#4CAF50;
+  color:#fff;
 }
 .products{
   padding:10px;
   display:grid;
-  grid-template-columns: repeat(2,1fr);
+  grid-template-columns:repeat(2,1fr);
   gap:10px;
 }
 .product-card{
@@ -54,7 +67,6 @@ body{
 .product-images{
   display:flex;
   gap:4px;
-  margin-bottom:6px;
 }
 .product-images img{
   width:32%;
@@ -63,33 +75,25 @@ body{
   border-radius:6px;
   cursor:pointer;
 }
-.product-card b{color:#4CAF50;}
-.more-btn{
-  width:100%;
-  margin-top:6px;
-  background:#eee;
-  border:none;
-  padding:6px;
-  border-radius:6px;
-  cursor:pointer;
+.product-card h4{
+  margin:6px 0 2px;
 }
-.more-info{
-  display:none;
-  background:#fafafa;
-  padding:6px;
-  border-radius:6px;
-  margin-top:6px;
-  font-size:13px;
+.product-card .price{
+  color:#4CAF50;
+  font-weight:bold;
+}
+.product-info{
+  font-size:12px;
+  color:#555;
 }
 .chat-btn{
-  margin-top:6px;
   width:100%;
+  margin-top:6px;
   background:#4CAF50;
   color:#fff;
   border:none;
   padding:6px;
   border-radius:6px;
-  cursor:pointer;
 }
 .bottom-nav{
   position:fixed;
@@ -105,7 +109,6 @@ body{
   background:none;
   border:none;
   font-size:13px;
-  cursor:pointer;
 }
 .add-product-fab{
   position:fixed;
@@ -131,35 +134,36 @@ body{
 .image-viewer img{
   max-width:95%;
   max-height:95%;
-  border-radius:10px;
 }
 </style>
 </head>
 
 <body>
 
-<div class="country-name" id="countryName"></div>
+<div id="countryName" class="country-name"></div>
 
 <div class="categories">
   <button onclick="selectCategory(this,'سيارات')">🚗 سيارات</button>
   <button onclick="selectCategory(this,'عقارات')">🏢 عقارات</button>
   <button onclick="selectCategory(this,'وظائف')">🧑‍💼 وظائف</button>
-  <button onclick="selectCategory(this,'هواتف + حواسيب')">📱💻 هواتف + حواسيب</button>
+  <button onclick="selectCategory(this,'إلكترونيات')">📱💻 إلكترونيات</button>
 </div>
+
+<div class="states" id="statesBox"></div>
 
 <div class="products" id="products"></div>
 
 <button class="add-product-fab" onclick="goAddProduct()">+</button>
 
-<div class="image-viewer" id="imageViewer" onclick="this.style.display='none'">
-  <img id="viewerImg">
-</div>
-
 <div class="bottom-nav">
   <button onclick="go('home.html')">🏠<br>الرئيسية</button>
   <button onclick="go('chats.html')">💬<br>الشات</button>
-  <button onclick="go('profile.html')">👤<br>الحساب</button>
+  <button onclick="go('account.html')">👤<br>الحساب</button>
   <button onclick="go('settings.html')">⚙️<br>الإعدادات</button>
+</div>
+
+<div class="image-viewer" id="imageViewer" onclick="this.style.display='none'">
+  <img id="viewerImg">
 </div>
 
 <script type="module">
@@ -167,27 +171,57 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getFirestore, collection, onSnapshot, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-const app = initializeApp({
-  apiKey:"AIzaSyD3hAvhSDs-lX7ORCOR0DODT3l_S_gJA2o",
-  authDomain:"arshi-market.firebaseapp.com",
-  projectId:"arshi-market",
-});
-const db=getFirestore(app);
-const auth=getAuth(app);
+const firebaseConfig = {
+  apiKey: "AIzaSyD3hAvhSDs-lX7ORCOR0DODT3l_S_gJA2o",
+  authDomain: "arshi-market.firebaseapp.com",
+  projectId: "arshi-market",
+};
 
-let country=localStorage.getItem("country");
-let currentCategory=localStorage.getItem("selectedCategory")||"";
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
 
-onAuthStateChanged(auth,async user=>{
-  if(!user){location.href="index.html";return;}
+let country = localStorage.getItem("country");
+let currentCategory="";
+let currentState="";
+
+onAuthStateChanged(auth, async(user)=>{
+  if(!user){ location.href="index.html"; return; }
   if(!country){
-    const s=await getDoc(doc(db,"users",user.uid));
-    if(s.exists()){
-      country=s.data().country;
+    const snap = await getDoc(doc(db,"users",user.uid));
+    if(snap.exists()){
+      country = snap.data().country;
       localStorage.setItem("country",country);
     }
   }
   document.getElementById("countryName").innerText="📍 الدولة: "+country;
+});
+
+const statesByCountry = {
+  "السودان":[
+    "الخرطوم","الجزيرة","نهر النيل","البحر الأحمر","كسلا","القضارف",
+    "سنار","النيل الأبيض","شمال كردفان","جنوب كردفان",
+    "شمال دارفور","جنوب دارفور","غرب دارفور","وسط دارفور","شرق دارفور"
+  ],
+  "مصر":[
+    "القاهرة","الجيزة","الإسكندرية","الدقهلية","الشرقية","القليوبية",
+    "كفر الشيخ","الغربية","المنوفية","البحيرة","دمياط","بورسعيد",
+    "الإسماعيلية","السويس","الفيوم","المنيا","أسيوط","سوهاج",
+    "قنا","الأقصر","أسوان","مطروح","الوادي الجديد","شمال سيناء","جنوب سيناء"
+  ]
+};
+
+const statesBox=document.getElementById("statesBox");
+(statesByCountry[country]||[]).forEach(s=>{
+  const b=document.createElement("button");
+  b.textContent=s;
+  b.onclick=()=>{
+    document.querySelectorAll(".states button").forEach(x=>x.classList.remove("active"));
+    b.classList.add("active");
+    currentState=s;
+    showProducts();
+  };
+  statesBox.appendChild(b);
 });
 
 let allProducts=[];
@@ -200,78 +234,49 @@ window.selectCategory=(btn,cat)=>{
   document.querySelectorAll(".categories button").forEach(b=>b.classList.remove("active"));
   btn.classList.add("active");
   currentCategory=cat;
-  localStorage.setItem("selectedCategory",cat);
+  statesBox.style.display="flex";
   showProducts();
 };
 
 function showProducts(){
   const box=document.getElementById("products");
   box.innerHTML="";
-  allProducts
-  .filter(p=>p.country===country && (!currentCategory||p.category===currentCategory))
-  .forEach(p=>{
-    const extra=getExtraDetails(p);
-    const hasMore=extra.length>0;
-
+  allProducts.filter(p=>
+    p.country===country &&
+    (!currentCategory || p.category===currentCategory) &&
+    (!currentState || p.state===currentState)
+  ).forEach(p=>{
     box.innerHTML+=`
     <div class="product-card">
-      ${p.images?.length?`
       <div class="product-images">
-        ${p.images.slice(0,3).map(i=>`<img src="${i}" onclick="viewImage('${i}')">`).join("")}
-      </div>`:""}
-
-      <p><b>${p.title}</b></p>
-      <p>💰 ${p.price||"—"}</p>
-      <p>📂 ${p.category||"—"}</p>
-      <p>⏱ ${p.createdAt || "حديثًا"}</p>
-
-      ${hasMore?`
-      <button class="more-btn" onclick="toggleMore(this)">➕ مزيد</button>
-      <div class="more-info">${extra.join("")}</div>`:""}
-
+        ${(p.images||[]).slice(0,3).map(img=>`
+          <img src="${img}" onclick="viewImage('${img}')">
+        `).join("")}
+      </div>
+      <h4>${p.title}</h4>
+      <div class="price">${p.price}</div>
+      <div class="product-info">
+        📍 ${p.state}<br>
+        👤 ${p.phone || ""}
+      </div>
       <button class="chat-btn" onclick="startChat('${p.id}','${p.userId}')">💬 مراسلة</button>
     </div>`;
   });
 }
 
-function getExtraDetails(p){
-  const d=[];
-  if(p.category==="سيارات"){
-    if(p.model)d.push(`🚗 موديل: ${p.model}<br>`);
-    if(p.year)d.push(`📅 سنة: ${p.year}<br>`);
-  }
-  if(p.category==="عقارات"){
-    if(p.type)d.push(`🏢 نوع: ${p.type}<br>`);
-    if(p.rooms)d.push(`🛏 غرف: ${p.rooms}<br>`);
-  }
-  if(p.category==="وظائف"){
-    if(p.company)d.push(`🏢 شركة: ${p.company}<br>`);
-    if(p.jobType)d.push(`⏱ دوام: ${p.jobType}<br>`);
-  }
-  if(p.category==="هواتف + حواسيب"){
-    if(p.brand)d.push(`📱 النوع: ${p.brand}<br>`);
-    if(p.storage)d.push(`💾 سعة: ${p.storage}<br>`);
-  }
-  if(p.description)d.push(`📝 ${p.description}`);
-  return d;
-}
-
-window.toggleMore=btn=>{
-  const box=btn.nextElementSibling;
-  const open=box.style.display==="block";
-  box.style.display=open?"none":"block";
-  btn.innerText=open?"➕ مزيد":"➖ إخفاء";
+window.startChat=(pid,seller)=>{
+  const user=auth.currentUser;
+  const chatId=[pid,user.uid,seller].sort().join("_");
+  location.href="chat.html?chatId="+chatId;
 };
 
-window.startChat=(pid,uid)=>{
-  const me=auth.currentUser;
-  if(!me)return;
-  location.href="chat.html?chatId="+[pid,me.uid,uid].sort().join("_");
+window.viewImage=(src)=>{
+  viewerImg.src=src;
+  imageViewer.style.display="flex";
 };
-window.viewImage=s=>{viewerImg.src=s;imageViewer.style.display="flex";}
-window.go=p=>location.href=p;
+
+window.go=(p)=>location.href=p;
 window.goAddProduct=()=>location.href="add-product.html";
 </script>
-
 </body>
-  </html>
+    </html>
