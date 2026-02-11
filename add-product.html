@@ -61,6 +61,9 @@ button{
     <option value="مستعمل">مستعمل</option>
   </select>
 
+  <!-- ✅ رقم الواتساب -->
+  <input id="whatsapp" placeholder="رقم واتساب (مثال: 201234567890)" required>
+
   <!-- الصور -->
   <input type="hidden"
     role="uploadcare-uploader"
@@ -168,6 +171,7 @@ typeSelect.addEventListener("change", ()=>{
 /* النشر */
 const form = document.getElementById("productForm");
 const imagesInput = document.getElementById("imagesInput");
+const whatsappInput = document.getElementById("whatsapp");
 
 form.addEventListener("submit", async (e)=>{
   e.preventDefault();
@@ -190,6 +194,8 @@ form.addEventListener("submit", async (e)=>{
     city: city.value,
     category: typeSelect.value,
     country: country,
+
+    whatsapp: whatsappInput.value, // ✅ تمت الإضافة
 
     model: model?.value || "",
     year: year?.value || "",
