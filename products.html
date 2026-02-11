@@ -31,6 +31,7 @@ body{
   padding:8px 14px;
   border-radius:20px;
   cursor:pointer;
+  white-space:nowrap;
 }
 .categories button.active,
 .states button.active{
@@ -66,29 +67,6 @@ body{
 .product-info{
   font-size:12px;
   color:#555;
-}
-.more-btn{
-  background:none;
-  border:none;
-  color:#4CAF50;
-  cursor:pointer;
-  font-size:12px;
-  margin-top:4px;
-}
-.extra-details{
-  display:none;
-  font-size:12px;
-  color:#444;
-  margin-top:4px;
-}
-.chat-btn{
-  width:100%;
-  margin-top:6px;
-  background:#4CAF50;
-  color:#fff;
-  border:none;
-  padding:6px;
-  border-radius:6px;
 }
 .bottom-nav{
   position:fixed;
@@ -141,17 +119,17 @@ body{
   <button onclick="selectCategory(this,'سيارات')">🚗 سيارات</button>
   <button onclick="selectCategory(this,'عقارات')">🏢 عقارات</button>
   <button onclick="selectCategory(this,'وظائف')">🧑‍💼 وظائف</button>
-  <button onclick="selectCategory(this,'إلكترونيات')">📱 إلكترونيات</button>
+  <button onclick="selectCategory(this,'هواتف')">📱 هواتف</button>
+  <button onclick="selectCategory(this,'لابتوبات')">💻 لابتوبات</button>
 </div>
 
-<div class="states" id="statesBox"></div>
+<div class="states" id="statesBox" style="display:none;"></div>
 <div class="products" id="products"></div>
 
 <button class="add-product-fab" onclick="goAddProduct()">+</button>
 
 <div class="bottom-nav">
   <button onclick="go('products.html')">🏠<br>الرئيسية</button>
-  <button onclick="go('chats.html')">💬<br>الشات</button>
   <button onclick="go('account.html')">👤<br>الحساب</button>
   <button onclick="go('settings.html')">⚙️<br>الإعدادات</button>
 </div>
@@ -162,7 +140,7 @@ body{
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, onSnapshot, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, doc, getDoc, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
@@ -178,6 +156,7 @@ const auth = getAuth(app);
 let country = "";
 let currentCategory = "";
 let currentState = "";
+let unsubscribe = null;
 
 const statesByCountry = {
   "السودان":[
@@ -200,97 +179,78 @@ onAuthStateChanged(auth, async(user)=>{
   }
 
   const snap = await getDoc(doc(db,"users",user.uid));
-  if(!snap.exists() || !snap.data().country){
-    location.href="country.html";
-    return;
-  }
-
   country = snap.data().country;
-  localStorage.setItem("country", country);
-
-  currentCategory = "";
-  currentState = "";
-
   document.getElementById("countryName").innerText = "📍 الدولة: " + country;
+});
 
+window.selectCategory=(btn,cat)=>{
+  document.querySelectorAll(".categories button").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+
+  currentCategory = cat;
+  loadStates();
+};
+
+function loadStates(){
   const statesBox = document.getElementById("statesBox");
-  statesBox.innerHTML = "";
+  statesBox.style.display="flex";
+  statesBox.innerHTML="";
 
-  (statesByCountry[country] || []).forEach(s=>{
+  (statesByCountry[country] || []).forEach((s,i)=>{
     const b=document.createElement("button");
     b.textContent=s;
     b.onclick=()=>{
       document.querySelectorAll(".states button").forEach(x=>x.classList.remove("active"));
       b.classList.add("active");
       currentState=s;
-      showProducts();
+      loadProducts();
     };
+    if(i===0){
+      currentState=s;
+      b.classList.add("active");
+    }
     statesBox.appendChild(b);
   });
-});
 
-let allProducts=[];
-onSnapshot(collection(db,"products"),snap=>{
-  allProducts=snap.docs.map(d=>({id:d.id,...d.data()}));
-  showProducts();
-});
-
-window.selectCategory=(btn,cat)=>{
-  document.querySelectorAll(".categories button").forEach(b=>b.classList.remove("active"));
-  btn.classList.add("active");
-  currentCategory=cat;
-  showProducts();
-};
-
-function showProducts(){
-  const box=document.getElementById("products");
-  box.innerHTML="";
-  allProducts.filter(p=>
-    p.country===country &&
-    (!currentCategory || p.category===currentCategory) &&
-    (!currentState || p.state===currentState)
-  ).forEach(p=>{
-    const hasDetails=p.details && Object.keys(p.details).length;
-    box.innerHTML+=`
-    <div class="product-card">
-      <div class="product-images">
-        ${(p.images||[]).slice(0,3).map(img=>`
-          <img src="${img}" onclick="viewImage('${img}')">
-        `).join("")}
-      </div>
-
-      <b>${p.title}</b>
-      <div class="price">${p.price}</div>
-
-      <div class="product-info">
-        📂 ${p.category}<br>
-        ⏱ ${new Date(p.createdAt?.seconds*1000).toLocaleDateString()}<br>
-        👤 بائع #${p.userId?.slice(0,4)}
-      </div>
-
-      ${hasDetails?`
-        <button class="more-btn" onclick="toggleMore('${p.id}',this)">مزيد</button>
-        <div class="extra-details" id="ex_${p.id}">
-          ${Object.entries(p.details).map(([k,v])=>`• ${k}: ${v}<br>`).join("")}
-        </div>`:""}
-
-      <button class="chat-btn" onclick="startChat('${p.id}','${p.userId}')">💬 مراسلة</button>
-    </div>`;
-  });
+  loadProducts();
 }
 
-window.toggleMore=(id,btn)=>{
-  const el=document.getElementById("ex_"+id);
-  const open=el.style.display==="block";
-  el.style.display=open?"none":"block";
-  btn.textContent=open?"مزيد":"إخفاء";
-};
+function loadProducts(){
+  const box=document.getElementById("products");
+  box.innerHTML="⏳ جاري التحميل...";
 
-window.startChat=(pid,seller)=>{
-  const user=auth.currentUser;
-  const chatId=[pid,user.uid,seller].sort().join("_");
-  location.href="chat.html?chatId="+chatId;
-};
+  if(unsubscribe) unsubscribe();
+
+  const q=query(
+    collection(db,"products"),
+    where("country","==",country),
+    where("category","==",currentCategory),
+    where("state","==",currentState)
+  );
+
+  unsubscribe = onSnapshot(q,snap=>{
+    box.innerHTML="";
+    snap.forEach(doc=>{
+      const p=doc.data();
+      box.innerHTML+=`
+      <div class="product-card">
+        <div class="product-images">
+          ${(p.images||[]).slice(0,3).map(img=>`
+            <img src="${img}" onclick="viewImage('${img}')">
+          `).join("")}
+        </div>
+
+        <b>${p.title}</b>
+        <div class="price">${p.price}</div>
+
+        <div class="product-info">
+          📂 ${p.category}<br>
+          📍 ${p.state}
+        </div>
+      </div>`;
+    });
+  });
+}
 
 window.viewImage=(src)=>{
   viewerImg.src=src;
@@ -301,4 +261,4 @@ window.go=p=>location.href=p;
 window.goAddProduct=()=>location.href="add-product.html";
 </script>
 </body>
-  </html>
+</html>
