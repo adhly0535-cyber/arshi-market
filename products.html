@@ -68,6 +68,22 @@ body{
   font-size:12px;
   color:#555;
 }
+.whatsapp-number{
+  font-size:12px;
+  margin-top:4px;
+  color:#333;
+  word-break:break-all;
+}
+.whatsapp-btn{
+  width:100%;
+  margin-top:6px;
+  background:#25D366;
+  color:#fff;
+  border:none;
+  padding:6px;
+  border-radius:6px;
+  cursor:pointer;
+}
 .bottom-nav{
   position:fixed;
   bottom:0;
@@ -159,25 +175,12 @@ let currentState = "";
 let unsubscribe = null;
 
 const statesByCountry = {
-  "السودان":[
-    "الخرطوم","الجزيرة","نهر النيل","البحر الأحمر","كسلا","القضارف",
-    "سنار","النيل الأبيض","شمال كردفان","جنوب كردفان",
-    "شمال دارفور","جنوب دارفور","غرب دارفور","وسط دارفور","شرق دارفور"
-  ],
-  "مصر":[
-    "القاهرة","الجيزة","الإسكندرية","الدقهلية","الشرقية","القليوبية",
-    "كفر الشيخ","الغربية","المنوفية","البحيرة","دمياط","بورسعيد",
-    "الإسماعيلية","السويس","الفيوم","المنيا","أسيوط","سوهاج",
-    "قنا","الأقصر","أسوان","مطروح","الوادي الجديد","شمال سيناء","جنوب سيناء"
-  ]
+  "السودان":["الخرطوم","الجزيرة","نهر النيل","البحر الأحمر","كسلا","القضارف","سنار","النيل الأبيض","شمال كردفان","جنوب كردفان","شمال دارفور","جنوب دارفور","غرب دارفور","وسط دارفور","شرق دارفور"],
+  "مصر":["القاهرة","الجيزة","الإسكندرية","الدقهلية","الشرقية","القليوبية","كفر الشيخ","الغربية","المنوفية","البحيرة","دمياط","بورسعيد","الإسماعيلية","السويس","الفيوم","المنيا","أسيوط","سوهاج","قنا","الأقصر","أسوان","مطروح","الوادي الجديد","شمال سيناء","جنوب سيناء"]
 };
 
 onAuthStateChanged(auth, async(user)=>{
-  if(!user){
-    location.href="index.html";
-    return;
-  }
-
+  if(!user){ location.href="index.html"; return; }
   const snap = await getDoc(doc(db,"users",user.uid));
   country = snap.data().country;
   document.getElementById("countryName").innerText = "📍 الدولة: " + country;
@@ -186,7 +189,6 @@ onAuthStateChanged(auth, async(user)=>{
 window.selectCategory=(btn,cat)=>{
   document.querySelectorAll(".categories button").forEach(b=>b.classList.remove("active"));
   btn.classList.add("active");
-
   currentCategory = cat;
   loadStates();
 };
@@ -195,7 +197,6 @@ function loadStates(){
   const statesBox = document.getElementById("statesBox");
   statesBox.style.display="flex";
   statesBox.innerHTML="";
-
   (statesByCountry[country] || []).forEach((s,i)=>{
     const b=document.createElement("button");
     b.textContent=s;
@@ -205,20 +206,15 @@ function loadStates(){
       currentState=s;
       loadProducts();
     };
-    if(i===0){
-      currentState=s;
-      b.classList.add("active");
-    }
+    if(i===0){ currentState=s; b.classList.add("active"); }
     statesBox.appendChild(b);
   });
-
   loadProducts();
 }
 
 function loadProducts(){
   const box=document.getElementById("products");
   box.innerHTML="⏳ جاري التحميل...";
-
   if(unsubscribe) unsubscribe();
 
   const q=query(
@@ -230,8 +226,8 @@ function loadProducts(){
 
   unsubscribe = onSnapshot(q,snap=>{
     box.innerHTML="";
-    snap.forEach(doc=>{
-      const p=doc.data();
+    snap.forEach(docSnap=>{
+      const p=docSnap.data();
       box.innerHTML+=`
       <div class="product-card">
         <div class="product-images">
@@ -247,6 +243,18 @@ function loadProducts(){
           📂 ${p.category}<br>
           📍 ${p.state}
         </div>
+
+        <div class="whatsapp-number">
+          📞 ${p.whatsapp || "غير متوفر"}
+        </div>
+
+        ${p.whatsapp ? `
+          <button class="whatsapp-btn"
+            onclick="window.open('https://wa.me/${p.whatsapp}','_blank')">
+            تواصل عبر واتساب
+          </button>
+        ` : ""}
+
       </div>`;
     });
   });
@@ -261,4 +269,4 @@ window.go=p=>location.href=p;
 window.goAddProduct=()=>location.href="add-product.html";
 </script>
 </body>
-</html>
+  </html>
