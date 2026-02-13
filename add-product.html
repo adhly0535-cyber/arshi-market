@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <title>إضافة منتج</title>
 
-<!-- Uploadcare -->
 <script>
 UPLOADCARE_PUBLIC_KEY = "3ebd7495cde73c075c2e";
 </script>
@@ -37,55 +36,49 @@ button{
 
 <form id="productForm">
 
-  <!-- نوع المنتج -->
-  <select id="typeSelect" required>
-    <option value="">اختر نوع المنتج</option>
-    <option value="سيارات">سيارات</option>
-    <option value="عقارات">عقارات</option>
-    <option value="وظائف">وظائف</option>
-    <option value="هواتف">هواتف</option>
-    <option value="لابتوبات">لابتوبات</option>
-  </select>
+<select id="typeSelect" required>
+  <option value="">اختر نوع المنتج</option>
+  <option value="سيارات">سيارات</option>
+  <option value="عقارات">عقارات</option>
+  <option value="وظائف">وظائف</option>
+  <option value="هواتف">هواتف</option>
+  <option value="لابتوبات">لابتوبات</option>
+</select>
 
-  <!-- الولاية -->
-  <select id="city" required>
-    <option value="">اختر الولاية / المدينة</option>
-  </select>
+<select id="city" required>
+  <option value="">اختر الولاية / المدينة</option>
+</select>
 
-  <input id="title" placeholder="عنوان الإعلان" required>
-  <input id="price" placeholder="السعر" required>
+<input id="title" placeholder="عنوان الإعلان" required>
+<input id="price" placeholder="السعر" required>
 
-  <select id="stateInput" required>
-    <option value="">الحالة</option>
-    <option value="جديد">جديد</option>
-    <option value="مستعمل">مستعمل</option>
-  </select>
+<select id="stateInput" required>
+  <option value="">الحالة</option>
+  <option value="جديد">جديد</option>
+  <option value="مستعمل">مستعمل</option>
+</select>
 
-  <!-- ✅ رقم الواتساب -->
-  <input id="whatsapp" placeholder="رقم واتساب (مثال: 201234567890)" required>
+<input id="whatsapp" placeholder="رقم واتساب (مثال: 201234567890)" required>
 
-  <!-- الصور -->
-  <input type="hidden"
-    role="uploadcare-uploader"
-    data-multiple="true"
-    data-max-files="3"
-    data-clearable="true"
-    id="imagesInput"
-  />
+<input type="hidden"
+  role="uploadcare-uploader"
+  data-multiple="true"
+  data-max-files="3"
+  data-clearable="true"
+  id="imagesInput"
+/>
 
-  <!-- الحقول المتغيرة -->
-  <div id="extraFields"></div>
+<div id="extraFields"></div>
 
-  <!-- الوصف فقط -->
-  <textarea id="desc" placeholder="وصف المنتج" required></textarea>
+<textarea id="desc" placeholder="وصف المنتج" required></textarea>
 
-  <button type="submit">📤 نشر المنتج</button>
+<button type="submit">📤 نشر المنتج</button>
 </form>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, collection, addDoc, serverTimestamp, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD3hAvhSDs-lX7ORCOR0DODT3l_S_gJA2o",
@@ -97,7 +90,6 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-/* الولايات */
 const statesByCountry = {
   "السودان":[
     "الخرطوم","الجزيرة","نهر النيل","البحر الأحمر","كسلا","القضارف",
@@ -112,17 +104,32 @@ const statesByCountry = {
   ]
 };
 
-const country = localStorage.getItem("country");
 const citySelect = document.getElementById("city");
+let country = "";
 
-(statesByCountry[country] || []).forEach(c=>{
-  const o = document.createElement("option");
-  o.value = c;
-  o.textContent = c;
-  citySelect.appendChild(o);
+onAuthStateChanged(auth, async(user)=>{
+  if(!user){
+    location.href="index.html";
+    return;
+  }
+
+  const snap = await getDoc(doc(db,"users",user.uid));
+  if(snap.exists()){
+    country = snap.data().country;
+
+    citySelect.innerHTML = `<option value="">اختر الولاية / المدينة</option>`;
+
+    (statesByCountry[country] || []).forEach(c=>{
+      const o = document.createElement("option");
+      o.value = c;
+      o.textContent = c;
+      citySelect.appendChild(o);
+    });
+  }
 });
 
-/* الحقول حسب النوع */
+/* بقية الكود كما هو بدون تغيير */
+
 const typeSelect = document.getElementById("typeSelect");
 const extra = document.getElementById("extraFields");
 
@@ -168,7 +175,6 @@ typeSelect.addEventListener("change", ()=>{
   }
 });
 
-/* النشر */
 const form = document.getElementById("productForm");
 const imagesInput = document.getElementById("imagesInput");
 const whatsappInput = document.getElementById("whatsapp");
@@ -182,6 +188,7 @@ form.addEventListener("submit", async (e)=>{
   }
 
   const user = auth.currentUser;
+
   const imageUrls = imagesInput.value
     .split(",")
     .map(id=>`https://ucarecdn.com/${id}/`);
@@ -194,8 +201,7 @@ form.addEventListener("submit", async (e)=>{
     city: city.value,
     category: typeSelect.value,
     country: country,
-
-    whatsapp: whatsappInput.value, // ✅ تمت الإضافة
+    whatsapp: whatsappInput.value,
 
     model: model?.value || "",
     year: year?.value || "",
@@ -220,7 +226,7 @@ form.addEventListener("submit", async (e)=>{
     extraTech: extraTech?.value || "",
 
     images: imageUrls,
-    userId: user ? user.uid : "guest",
+    userId: user.uid,
     createdAt: serverTimestamp()
   });
 
@@ -231,4 +237,4 @@ form.addEventListener("submit", async (e)=>{
 </script>
 
 </body>
-</html>
+  </html>
