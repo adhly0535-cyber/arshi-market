@@ -118,9 +118,9 @@ body{
 
 <button class="logout" onclick="logout()">🚪 تسجيل الخروج</button>
 
+<!-- تم حذف زر الشات من هنا -->
 <div class="bottom-nav">
   <button onclick="go('products.html')">🏠<br>الرئيسية</button>
-  <button onclick="go('inbox.html')">💬<br>الشات</button>
   <button onclick="go('account.html')">👤<br>الحساب</button>
   <button onclick="go('settings.html')">⚙️<br>الإعدادات</button>
 </div>
@@ -128,7 +128,7 @@ body{
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD3hAvhSDs-lX7ORCOR0DODT3l_S_gJA2o",
@@ -159,7 +159,15 @@ onAuthStateChanged(auth, async user=>{
       email: user.email,
       name: user.displayName || "مستخدم",
       photo: user.photoURL || "",
+      country: "",
       createdAt: Date.now()
+    });
+    snap = await getDoc(ref);
+  } else {
+    // تحديث الاسم والصورة دائماً من Google
+    await updateDoc(ref,{
+      name: user.displayName || "مستخدم",
+      photo: user.photoURL || ""
     });
     snap = await getDoc(ref);
   }
