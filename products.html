@@ -228,6 +228,17 @@ function loadProducts(){
     box.innerHTML="";
     snap.forEach(docSnap=>{
       const p=docSnap.data();
+
+      // تنظيف الرقم من أي رموز
+      const cleanNumber = (p.whatsapp || "").replace(/\D/g,"");
+
+      // رسالة تلقائية مع اسم المنتج
+      const message = encodeURIComponent(
+        "مرحبًا 👋\nأرغب في الاستفسار عن المنتج:\n" + p.title
+      );
+
+      const whatsappLink = `https://wa.me/${cleanNumber}?text=${message}`;
+
       box.innerHTML+=`
       <div class="product-card">
         <div class="product-images">
@@ -250,8 +261,8 @@ function loadProducts(){
 
         ${p.whatsapp ? `
           <button class="whatsapp-btn"
-            onclick="window.open('https://wa.me/${p.whatsapp}','_blank')">
-            تواصل عبر واتساب
+            onclick="window.open('${whatsappLink}','_blank')">
+            💬 تواصل عبر واتساب
           </button>
         ` : ""}
 
