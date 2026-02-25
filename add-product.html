@@ -58,7 +58,7 @@ button{
   <option value="مستعمل">مستعمل</option>
 </select>
 
-<input id="whatsapp" placeholder="رقم واتساب (مثال: 201234567890)" required>
+<input id="whatsapp" placeholder="رقم واتساب (مثال: 249XXXXXXXXX)" required>
 
 <input type="hidden"
   role="uploadcare-uploader"
@@ -90,18 +90,15 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
+/* =========================
+   الولايات (18 ولاية كاملة)
+========================= */
 const statesByCountry = {
   "السودان":[
     "الخرطوم","الجزيرة","نهر النيل","البحر الأحمر","كسلا","القضارف",
     "سنار","النيل الأبيض","شمال كردفان","جنوب كردفان","غرب كردفان",
     "شمال دارفور","جنوب دارفور","غرب دارفور","وسط دارفور","شرق دارفور",
     "الشمالية","النيل الأزرق"
-  ],
-  "مصر":[
-    "القاهرة","الجيزة","الإسكندرية","الدقهلية","الشرقية","القليوبية",
-    "كفر الشيخ","الغربية","المنوفية","البحيرة","دمياط","بورسعيد",
-    "الإسماعيلية","السويس","الفيوم","المنيا","أسيوط","سوهاج",
-    "قنا","الأقصر","أسوان","مطروح","الوادي الجديد","شمال سيناء","جنوب سيناء"
   ]
 };
 
@@ -129,7 +126,9 @@ onAuthStateChanged(auth, async(user)=>{
   }
 });
 
-/* بقية الكود كما هو بدون تغيير */
+/* =========================
+   الحقول حسب النوع (مختصرة)
+========================= */
 
 const typeSelect = document.getElementById("typeSelect");
 const extra = document.getElementById("extraFields");
@@ -141,7 +140,6 @@ typeSelect.addEventListener("change", ()=>{
     extra.innerHTML = `
       <input id="model" placeholder="الموديل">
       <input id="year" placeholder="سنة الصنع">
-      <input id="km" placeholder="عدد الكيلومترات">
       <input id="gear" placeholder="ناقل الحركة">
       <input id="fuel" placeholder="نوع الوقود">
     `;
@@ -150,34 +148,38 @@ typeSelect.addEventListener("change", ()=>{
   if(typeSelect.value === "عقارات"){
     extra.innerHTML = `
       <input id="rooms" placeholder="عدد الغرف">
-      <input id="bathrooms" placeholder="عدد الحمامات">
-      <input id="area" placeholder="المساحة">
-      <input id="floor" placeholder="الطابق">
-      <input id="furnished" placeholder="مفروش / لا">
+      <input id="area" placeholder="المساحة بالمتر">
+      <input id="furnished" placeholder="مفروش / غير مفروش">
     `;
   }
 
   if(typeSelect.value === "وظائف"){
     extra.innerHTML = `
       <input id="jobType" placeholder="نوع الوظيفة">
-      <input id="experience" placeholder="سنوات الخبرة">
       <input id="salary" placeholder="الراتب">
-      <input id="workPlace" placeholder="مكان العمل">
     `;
   }
 
   if(typeSelect.value === "هواتف" || typeSelect.value === "لابتوبات"){
     extra.innerHTML = `
       <input id="brand" placeholder="الشركة">
-      <input id="storage" placeholder="التخزين">
-      <input id="ram" placeholder="الرام">
-      <input id="extraTech" placeholder="مواصفات إضافية">
+      <input id="storage" placeholder="التخزين / الرام">
     `;
   }
 });
 
+/* =========================
+   إصلاح زر النشر نهائياً
+========================= */
+
 const form = document.getElementById("productForm");
 const imagesInput = document.getElementById("imagesInput");
+
+const title = document.getElementById("title");
+const price = document.getElementById("price");
+const desc = document.getElementById("desc");
+const stateInput = document.getElementById("stateInput");
+const city = document.getElementById("city");
 const whatsappInput = document.getElementById("whatsapp");
 
 form.addEventListener("submit", async (e)=>{
@@ -204,38 +206,31 @@ form.addEventListener("submit", async (e)=>{
     country: country,
     whatsapp: whatsappInput.value,
 
-    model: model?.value || "",
-    year: year?.value || "",
-    km: km?.value || "",
-    gear: gear?.value || "",
-    fuel: fuel?.value || "",
+    model: document.getElementById("model")?.value || "",
+    year: document.getElementById("year")?.value || "",
+    gear: document.getElementById("gear")?.value || "",
+    fuel: document.getElementById("fuel")?.value || "",
 
-    rooms: rooms?.value || "",
-    bathrooms: bathrooms?.value || "",
-    area: area?.value || "",
-    floor: floor?.value || "",
-    furnished: furnished?.value || "",
+    rooms: document.getElementById("rooms")?.value || "",
+    area: document.getElementById("area")?.value || "",
+    furnished: document.getElementById("furnished")?.value || "",
 
-    jobType: jobType?.value || "",
-    experience: experience?.value || "",
-    salary: salary?.value || "",
-    workPlace: workPlace?.value || "",
+    jobType: document.getElementById("jobType")?.value || "",
+    salary: document.getElementById("salary")?.value || "",
 
-    brand: brand?.value || "",
-    storage: storage?.value || "",
-    ram: ram?.value || "",
-    extraTech: extraTech?.value || "",
+    brand: document.getElementById("brand")?.value || "",
+    storage: document.getElementById("storage")?.value || "",
 
     images: imageUrls,
     userId: user.uid,
     createdAt: serverTimestamp()
   });
 
-  alert("✅ تم نشر المنتج");
+  alert("✅ تم نشر المنتج بنجاح");
   form.reset();
   extra.innerHTML="";
 });
 </script>
 
 </body>
-  </html>
+</html>
