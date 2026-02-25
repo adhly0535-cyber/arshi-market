@@ -140,7 +140,8 @@ const statesByCountry = {
 
 onAuthStateChanged(auth, async(user)=>{
   if(!user){
-    location.href="index.html";
+    // إذا غير مسجل، إعادة لتسجيل الدخول
+    location.href = "login.html"; // تأكد أن صفحة تسجيل الدخول هنا اسمها login.html
     return;
   }
 
@@ -227,11 +228,14 @@ publishBtn.addEventListener("click", async ()=>{
       createdAt: serverTimestamp()
     });
 
+    // عرض رسالة النجاح
     successBox.style.display = "block";
     publishBtn.innerText = "✅ تم النشر";
 
+    // تحويل إلى صفحة المنتجات مع فلترة حسب المدينة
+    const selectedCity = document.getElementById("city").value;
     setTimeout(()=>{
-      window.location.href = "index.html";
+      window.location.href = "products.html?city=" + encodeURIComponent(selectedCity);
     },1500);
 
   }catch(error){
