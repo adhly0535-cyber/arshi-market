@@ -31,6 +31,15 @@ button{
 button:disabled{
   background:#999;
 }
+.success-box{
+  background:#1e1e1e;
+  color:#fff;
+  padding:20px;
+  border-radius:12px;
+  text-align:center;
+  margin-top:15px;
+  display:none;
+}
 </style>
 </head>
 
@@ -77,7 +86,12 @@ button:disabled{
 <textarea id="desc" placeholder="وصف المنتج" required></textarea>
 
 <button type="button" id="publishBtn">📤 نشر المنتج</button>
+
 </form>
+
+<div class="success-box" id="successBox">
+  ✅ تم نشر المنتج بنجاح
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -166,6 +180,7 @@ typeSelect.addEventListener("change", ()=>{
 /* نشر المنتج */
 const publishBtn = document.getElementById("publishBtn");
 const imagesInput = document.getElementById("imagesInput");
+const successBox = document.getElementById("successBox");
 
 publishBtn.addEventListener("click", async ()=>{
 
@@ -186,14 +201,14 @@ publishBtn.addEventListener("click", async ()=>{
       .map(id=>`https://ucarecdn.com/${id}/`);
 
     await addDoc(collection(db,"products"),{
-      title: title.value,
-      price: price.value,
-      desc: desc.value,
-      state: stateInput.value,
-      city: city.value,
+      title: document.getElementById("title").value,
+      price: document.getElementById("price").value,
+      desc: document.getElementById("desc").value,
+      state: document.getElementById("stateInput").value,
+      city: document.getElementById("city").value,
       category: typeSelect.value,
       country: country,
-      whatsapp: whatsapp.value,
+      whatsapp: document.getElementById("whatsapp").value,
 
       model: document.getElementById("model")?.value || "",
       fuel: document.getElementById("fuel")?.value || "",
@@ -213,17 +228,19 @@ publishBtn.addEventListener("click", async ()=>{
       createdAt: serverTimestamp()
     });
 
-    alert("✅ تم نشر المنتج بنجاح");
-    document.getElementById("productForm").reset();
-    extra.innerHTML="";
+    successBox.style.display = "block";
+    publishBtn.innerText = "✅ تم النشر";
+
+    setTimeout(()=>{
+      window.location.href = "index.html";
+    },1500);
 
   }catch(error){
     alert("حدث خطأ أثناء النشر");
     console.error(error);
+    publishBtn.disabled = false;
+    publishBtn.innerText = "📤 نشر المنتج";
   }
-
-  publishBtn.disabled = false;
-  publishBtn.innerText = "📤 نشر المنتج";
 
 });
 </script>
