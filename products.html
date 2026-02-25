@@ -135,8 +135,8 @@ body{
   <button onclick="selectCategory(this,'سيارات')">🚗 سيارات</button>
   <button onclick="selectCategory(this,'عقارات')">🏢 عقارات</button>
   <button onclick="selectCategory(this,'وظائف')">🧑‍💼 وظائف</button>
-  <button onclick="selectCategory(this,'هواتف')">📱 هواتف</button>
-  <button onclick="selectCategory(this,'لابتوبات')">💻 لابتوبات</button>
+  <button onclick="selectCategory(this,'إلكترونيات')">📱 إلكترونيات</button>
+  <button onclick="selectCategory(this,'تجارة')">🛒 تجارة</button>
 </div>
 
 <div class="states" id="statesBox" style="display:none;"></div>
@@ -160,7 +160,7 @@ import { getFirestore, collection, onSnapshot, doc, getDoc, query, where } from 
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyD3hAvhSDs-lX7ORCOR0DODT3l_S_gJA2o",
+  apiKey: "YOUR_API_KEY",
   authDomain: "arshi-market.firebaseapp.com",
   projectId: "arshi-market",
 };
@@ -226,11 +226,17 @@ function loadProducts(){
     collection(db,"products"),
     where("country","==",country),
     where("category","==",currentCategory),
-    where("state","==",currentState)
+    where("city","==",currentState)
   );
 
   unsubscribe = onSnapshot(q,snap=>{
     box.innerHTML="";
+
+    if(snap.empty){
+      box.innerHTML="😢 لا توجد منتجات في هذه الولاية حالياً";
+      return;
+    }
+
     snap.forEach(docSnap=>{
       const p=docSnap.data();
       const cleanNumber = (p.whatsapp || "").replace(/\D/g,"");
@@ -248,7 +254,8 @@ function loadProducts(){
         <div class="price">${p.price}</div>
         <div class="product-info">
           📂 ${p.category}<br>
-          📍 ${p.state}
+          📍 ${p.city}
+          ${p.tradeType ? `<br>🛒 ${p.tradeType}` : ""}
         </div>
         <div class="whatsapp-number">
           📞 ${p.whatsapp || "غير متوفر"}
@@ -260,8 +267,8 @@ function loadProducts(){
 }
 
 window.viewImage=(src)=>{
-  viewerImg.src=src;
-  imageViewer.style.display="flex";
+  document.getElementById("viewerImg").src=src;
+  document.getElementById("imageViewer").style.display="flex";
 };
 
 window.go=p=>location.href=p;
@@ -269,4 +276,4 @@ window.goAddProduct=()=>location.href="add-product.html";
 
 </script>
 </body>
-  </html>
+</html>
