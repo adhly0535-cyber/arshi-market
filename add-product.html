@@ -128,7 +128,7 @@ widget.onUploadComplete(function(info){
   imagesInput.value = current.join(",");
 });
 
-/* الولايات */
+/* الولايات السودان الكاملة */
 const statesByCountry = {
   "السودان":[
     "الخرطوم","الجزيرة","نهر النيل","البحر الأحمر","كسلا","القضارف",
@@ -141,7 +141,7 @@ const statesByCountry = {
 onAuthStateChanged(auth, async(user)=>{
   if(!user){
     // إذا غير مسجل، إعادة لتسجيل الدخول
-    location.href = "login.html"; // تأكد أن صفحة تسجيل الدخول هنا اسمها login.html
+    location.href = "login.html";
     return;
   }
 
@@ -158,33 +158,24 @@ onAuthStateChanged(auth, async(user)=>{
   }
 });
 
-/* الحقول حسب النوع (مبسطة) */
+/* الحقول حسب النوع */
 typeSelect.addEventListener("change", ()=>{
   extra.innerHTML = "";
 
   if(typeSelect.value === "سيارات"){
-    extra.innerHTML = `
-      <input id="model" placeholder="الموديل">
-    `;
+    extra.innerHTML = `<input id="model" placeholder="الموديل">`;
   }
 
   if(typeSelect.value === "عقارات"){
-    extra.innerHTML = `
-      <input id="rooms" placeholder="عدد الغرف">
-      <input id="area" placeholder="المساحة بالمتر">
-    `;
+    extra.innerHTML = `<input id="rooms" placeholder="عدد الغرف"><input id="area" placeholder="المساحة بالمتر">`;
   }
 
   if(typeSelect.value === "وظائف"){
-    extra.innerHTML = `
-      <input id="salary" placeholder="الراتب">
-    `;
+    extra.innerHTML = `<input id="salary" placeholder="الراتب">`;
   }
 
   if(typeSelect.value === "هواتف" || typeSelect.value === "لابتوبات"){
-    extra.innerHTML = `
-      <input id="brand" placeholder="الشركة">
-    `;
+    extra.innerHTML = `<input id="brand" placeholder="الشركة">`;
   }
 });
 
@@ -207,13 +198,16 @@ publishBtn.addEventListener("click", async ()=>{
       .split(",")
       .map(id=>`https://ucarecdn.com/${id}/`);
 
+    const selectedCity = document.getElementById("city").value;
+    const selectedCategory = typeSelect.value;
+
     await addDoc(collection(db,"products"),{
       title: document.getElementById("title").value,
       price: document.getElementById("price").value,
       desc: document.getElementById("desc").value,
       state: document.getElementById("stateInput").value,
-      city: document.getElementById("city").value,
-      category: typeSelect.value,
+      city: selectedCity,
+      category: selectedCategory,
       country: country,
       whatsapp: document.getElementById("whatsapp").value,
 
@@ -232,10 +226,9 @@ publishBtn.addEventListener("click", async ()=>{
     successBox.style.display = "block";
     publishBtn.innerText = "✅ تم النشر";
 
-    // تحويل إلى صفحة المنتجات مع فلترة حسب المدينة
-    const selectedCity = document.getElementById("city").value;
+    // تحويل مباشرة إلى صفحة المنتجات مع الفئة والولاية لفلترة المنتج
     setTimeout(()=>{
-      window.location.href = "products.html?city=" + encodeURIComponent(selectedCity);
+      window.location.href = `products.html?category=${encodeURIComponent(selectedCategory)}&city=${encodeURIComponent(selectedCity)}`;
     },1500);
 
   }catch(error){
@@ -250,4 +243,4 @@ publishBtn.addEventListener("click", async ()=>{
 </script>
 
 </body>
-</html>
+  </html>
