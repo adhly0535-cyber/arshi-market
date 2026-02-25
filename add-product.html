@@ -26,6 +26,10 @@ button{
   color:#fff;
   border:none;
   border-radius:6px;
+  cursor:pointer;
+}
+button:disabled{
+  background:#999;
 }
 </style>
 </head>
@@ -34,7 +38,7 @@ button{
 
 <h3>إضافة منتج</h3>
 
-<form id="productForm">
+<form id="productForm" onsubmit="return false;">
 
 <select id="typeSelect" required>
   <option value="">اختر نوع المنتج</option>
@@ -72,7 +76,7 @@ button{
 
 <textarea id="desc" placeholder="وصف المنتج" required></textarea>
 
-<button type="submit">📤 نشر المنتج</button>
+<button type="button" id="publishBtn">📤 نشر المنتج</button>
 </form>
 
 <script type="module">
@@ -90,9 +94,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-/* =========================
-   الولايات (18 ولاية كاملة)
-========================= */
+/* الولايات */
 const statesByCountry = {
   "السودان":[
     "الخرطوم","الجزيرة","نهر النيل","البحر الأحمر","كسلا","القضارف",
@@ -114,9 +116,7 @@ onAuthStateChanged(auth, async(user)=>{
   const snap = await getDoc(doc(db,"users",user.uid));
   if(snap.exists()){
     country = snap.data().country;
-
     citySelect.innerHTML = `<option value="">اختر الولاية / المدينة</option>`;
-
     (statesByCountry[country] || []).forEach(c=>{
       const o = document.createElement("option");
       o.value = c;
@@ -126,10 +126,7 @@ onAuthStateChanged(auth, async(user)=>{
   }
 });
 
-/* =========================
-   الحقول حسب النوع (مختصرة)
-========================= */
-
+/* الحقول حسب النوع */
 const typeSelect = document.getElementById("typeSelect");
 const extra = document.getElementById("extraFields");
 
@@ -139,8 +136,6 @@ typeSelect.addEventListener("change", ()=>{
   if(typeSelect.value === "سيارات"){
     extra.innerHTML = `
       <input id="model" placeholder="الموديل">
-      <input id="year" placeholder="سنة الصنع">
-      <input id="gear" placeholder="ناقل الحركة">
       <input id="fuel" placeholder="نوع الوقود">
     `;
   }
@@ -168,67 +163,68 @@ typeSelect.addEventListener("change", ()=>{
   }
 });
 
-/* =========================
-   إصلاح زر النشر نهائياً
-========================= */
-
-const form = document.getElementById("productForm");
+/* نشر المنتج */
+const publishBtn = document.getElementById("publishBtn");
 const imagesInput = document.getElementById("imagesInput");
 
-const title = document.getElementById("title");
-const price = document.getElementById("price");
-const desc = document.getElementById("desc");
-const stateInput = document.getElementById("stateInput");
-const city = document.getElementById("city");
-const whatsappInput = document.getElementById("whatsapp");
-
-form.addEventListener("submit", async (e)=>{
-  e.preventDefault();
+publishBtn.addEventListener("click", async ()=>{
 
   if(!imagesInput.value){
     alert("يرجى إضافة صورة واحدة على الأقل");
     return;
   }
 
-  const user = auth.currentUser;
+  publishBtn.disabled = true;
+  publishBtn.innerText = "جاري النشر...";
 
-  const imageUrls = imagesInput.value
-    .split(",")
-    .map(id=>`https://ucarecdn.com/${id}/`);
+  try{
 
-  await addDoc(collection(db,"products"),{
-    title: title.value,
-    price: price.value,
-    desc: desc.value,
-    state: stateInput.value,
-    city: city.value,
-    category: typeSelect.value,
-    country: country,
-    whatsapp: whatsappInput.value,
+    const user = auth.currentUser;
 
-    model: document.getElementById("model")?.value || "",
-    year: document.getElementById("year")?.value || "",
-    gear: document.getElementById("gear")?.value || "",
-    fuel: document.getElementById("fuel")?.value || "",
+    const imageUrls = imagesInput.value
+      .split(",")
+      .map(id=>`https://ucarecdn.com/${id}/`);
 
-    rooms: document.getElementById("rooms")?.value || "",
-    area: document.getElementById("area")?.value || "",
-    furnished: document.getElementById("furnished")?.value || "",
+    await addDoc(collection(db,"products"),{
+      title: title.value,
+      price: price.value,
+      desc: desc.value,
+      state: stateInput.value,
+      city: city.value,
+      category: typeSelect.value,
+      country: country,
+      whatsapp: whatsapp.value,
 
-    jobType: document.getElementById("jobType")?.value || "",
-    salary: document.getElementById("salary")?.value || "",
+      model: document.getElementById("model")?.value || "",
+      fuel: document.getElementById("fuel")?.value || "",
 
-    brand: document.getElementById("brand")?.value || "",
-    storage: document.getElementById("storage")?.value || "",
+      rooms: document.getElementById("rooms")?.value || "",
+      area: document.getElementById("area")?.value || "",
+      furnished: document.getElementById("furnished")?.value || "",
 
-    images: imageUrls,
-    userId: user.uid,
-    createdAt: serverTimestamp()
-  });
+      jobType: document.getElementById("jobType")?.value || "",
+      salary: document.getElementById("salary")?.value || "",
 
-  alert("✅ تم نشر المنتج بنجاح");
-  form.reset();
-  extra.innerHTML="";
+      brand: document.getElementById("brand")?.value || "",
+      storage: document.getElementById("storage")?.value || "",
+
+      images: imageUrls,
+      userId: user.uid,
+      createdAt: serverTimestamp()
+    });
+
+    alert("✅ تم نشر المنتج بنجاح");
+    document.getElementById("productForm").reset();
+    extra.innerHTML="";
+
+  }catch(error){
+    alert("حدث خطأ أثناء النشر");
+    console.error(error);
+  }
+
+  publishBtn.disabled = false;
+  publishBtn.innerText = "📤 نشر المنتج";
+
 });
 </script>
 
