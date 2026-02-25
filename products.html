@@ -160,7 +160,7 @@ import { getFirestore, collection, onSnapshot, doc, getDoc, query, where } from 
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
+  apiKey: "AIzaSyD3hAvhSDs-lX7ORCOR0DODT3l_S_gJA2o",
   authDomain: "arshi-market.firebaseapp.com",
   projectId: "arshi-market",
 };
@@ -180,13 +180,18 @@ const statesByCountry = {
     "سنار","النيل الأبيض","شمال كردفان","جنوب كردفان","غرب كردفان",
     "شمال دارفور","جنوب دارفور","غرب دارفور","وسط دارفور","شرق دارفور",
     "الشمالية","النيل الأزرق"
-  ],
-  "مصر":["القاهرة","الجيزة","الإسكندرية","الدقهلية","الشرقية","القليوبية","كفر الشيخ","الغربية","المنوفية","البحيرة","دمياط","بورسعيد","الإسماعيلية","السويس","الفيوم","المنيا","أسيوط","سوهاج","قنا","الأقصر","أسوان","مطروح","الوادي الجديد","شمال سيناء","جنوب سيناء"]
+  ]
 };
 
 onAuthStateChanged(auth, async(user)=>{
-  if(!user){ location.href="index.html"; return; }
+  if(!user){
+    console.log("المستخدم غير مسجل دخول");
+    return;
+  }
+
   const snap = await getDoc(doc(db,"users",user.uid));
+  if(!snap.exists()) return;
+
   country = snap.data().country;
   document.getElementById("countryName").innerText = "📍 الدولة: " + country;
 });
@@ -218,6 +223,8 @@ function loadStates(){
 }
 
 function loadProducts(){
+  if(!country || !currentCategory || !currentState) return;
+
   const box=document.getElementById("products");
   box.innerHTML="⏳ جاري التحميل...";
   if(unsubscribe) unsubscribe();
@@ -233,7 +240,7 @@ function loadProducts(){
     box.innerHTML="";
 
     if(snap.empty){
-      box.innerHTML="😢 لا توجد منتجات في هذه الولاية حالياً";
+      box.innerHTML="😢 لا توجد منتجات حالياً";
       return;
     }
 
