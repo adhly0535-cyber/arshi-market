@@ -71,11 +71,13 @@ button:disabled{
   <option value="مستعمل">مستعمل</option>
 </select>
 
-<input id="whatsapp" placeholder="رقم واتساب (مثال: 249XXXXXXXXX)" required>
+<input id="whatsapp" placeholder="رقم واتساب (249XXXXXXXXX)" required>
 
+<!-- رفع الصور -->
 <input type="hidden"
   role="uploadcare-uploader"
   data-multiple="true"
+  data-images-only="true"
   data-max-files="3"
   data-clearable="true"
   id="imagesInput"
@@ -94,6 +96,7 @@ button:disabled{
 </div>
 
 <script type="module">
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, collection, addDoc, serverTimestamp, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -108,6 +111,23 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
+const citySelect = document.getElementById("city");
+const typeSelect = document.getElementById("typeSelect");
+const extra = document.getElementById("extraFields");
+const publishBtn = document.getElementById("publishBtn");
+const imagesInput = document.getElementById("imagesInput");
+const successBox = document.getElementById("successBox");
+
+let country = "";
+
+/* تفعيل Uploadcare */
+const widget = uploadcare.Widget('[role=uploadcare-uploader]');
+widget.onUploadComplete(function(info){
+  let current = imagesInput.value ? imagesInput.value.split(",") : [];
+  current.push(info.uuid);
+  imagesInput.value = current.join(",");
+});
+
 /* الولايات */
 const statesByCountry = {
   "السودان":[
@@ -117,9 +137,6 @@ const statesByCountry = {
     "الشمالية","النيل الأزرق"
   ]
 };
-
-const citySelect = document.getElementById("city");
-let country = "";
 
 onAuthStateChanged(auth, async(user)=>{
   if(!user){
@@ -140,17 +157,13 @@ onAuthStateChanged(auth, async(user)=>{
   }
 });
 
-/* الحقول حسب النوع */
-const typeSelect = document.getElementById("typeSelect");
-const extra = document.getElementById("extraFields");
-
+/* الحقول حسب النوع (مبسطة) */
 typeSelect.addEventListener("change", ()=>{
   extra.innerHTML = "";
 
   if(typeSelect.value === "سيارات"){
     extra.innerHTML = `
       <input id="model" placeholder="الموديل">
-      <input id="fuel" placeholder="نوع الوقود">
     `;
   }
 
@@ -158,13 +171,11 @@ typeSelect.addEventListener("change", ()=>{
     extra.innerHTML = `
       <input id="rooms" placeholder="عدد الغرف">
       <input id="area" placeholder="المساحة بالمتر">
-      <input id="furnished" placeholder="مفروش / غير مفروش">
     `;
   }
 
   if(typeSelect.value === "وظائف"){
     extra.innerHTML = `
-      <input id="jobType" placeholder="نوع الوظيفة">
       <input id="salary" placeholder="الراتب">
     `;
   }
@@ -172,16 +183,11 @@ typeSelect.addEventListener("change", ()=>{
   if(typeSelect.value === "هواتف" || typeSelect.value === "لابتوبات"){
     extra.innerHTML = `
       <input id="brand" placeholder="الشركة">
-      <input id="storage" placeholder="التخزين / الرام">
     `;
   }
 });
 
 /* نشر المنتج */
-const publishBtn = document.getElementById("publishBtn");
-const imagesInput = document.getElementById("imagesInput");
-const successBox = document.getElementById("successBox");
-
 publishBtn.addEventListener("click", async ()=>{
 
   if(!imagesInput.value){
@@ -211,17 +217,10 @@ publishBtn.addEventListener("click", async ()=>{
       whatsapp: document.getElementById("whatsapp").value,
 
       model: document.getElementById("model")?.value || "",
-      fuel: document.getElementById("fuel")?.value || "",
-
       rooms: document.getElementById("rooms")?.value || "",
       area: document.getElementById("area")?.value || "",
-      furnished: document.getElementById("furnished")?.value || "",
-
-      jobType: document.getElementById("jobType")?.value || "",
       salary: document.getElementById("salary")?.value || "",
-
       brand: document.getElementById("brand")?.value || "",
-      storage: document.getElementById("storage")?.value || "",
 
       images: imageUrls,
       userId: user.uid,
@@ -243,7 +242,8 @@ publishBtn.addEventListener("click", async ()=>{
   }
 
 });
+
 </script>
 
 </body>
-  </html>
+</html>
