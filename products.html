@@ -192,8 +192,11 @@ onAuthStateChanged(auth, async(user)=>{
   const snap = await getDoc(doc(db,"users",user.uid));
   if(!snap.exists()) return;
 
-  country = snap.data().country;
+  country = snap.data().country || "السودان";
   document.getElementById("countryName").innerText = "📍 الدولة: " + country;
+
+  // 🔥 مهم جداً
+  loadStates();
 });
 
 window.selectCategory=(btn,cat)=>{
