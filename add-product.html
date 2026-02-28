@@ -80,7 +80,6 @@ button:disabled{
   data-images-only="true"
   data-max-files="3"
   data-clearable="true"
-  id="imagesInput"
 />
 
 <div id="extraFields"></div>
@@ -115,20 +114,19 @@ const citySelect = document.getElementById("city");
 const typeSelect = document.getElementById("typeSelect");
 const extra = document.getElementById("extraFields");
 const publishBtn = document.getElementById("publishBtn");
-const imagesInput = document.getElementById("imagesInput");
 const successBox = document.getElementById("successBox");
 
 let country = "";
+let uploadedImages = []; // هنا نخزن الروابط الصحيحة
 
 /* تفعيل Uploadcare */
 const widget = uploadcare.Widget('[role=uploadcare-uploader]');
+
 widget.onUploadComplete(function(info){
-  let current = imagesInput.value ? imagesInput.value.split(",") : [];
-  current.push(info.uuid);
-  imagesInput.value = current.join(",");
+  uploadedImages.push(info.cdnUrl); // نحفظ الرابط الكامل مباشرة
 });
 
-/* الولايات السودان الكاملة */
+/* الولايات السودان */
 const statesByCountry = {
   "السودان":[
     "الخرطوم","الجزيرة","نهر النيل","البحر الأحمر","كسلا","القضارف",
@@ -140,7 +138,6 @@ const statesByCountry = {
 
 onAuthStateChanged(auth, async(user)=>{
   if(!user){
-    // إذا غير مسجل، إعادة لتسجيل الدخول
     location.href = "login.html";
     return;
   }
@@ -182,7 +179,7 @@ typeSelect.addEventListener("change", ()=>{
 /* نشر المنتج */
 publishBtn.addEventListener("click", async ()=>{
 
-  if(!imagesInput.value){
+  if(uploadedImages.length === 0){
     alert("يرجى إضافة صورة واحدة على الأقل");
     return;
   }
@@ -193,10 +190,6 @@ publishBtn.addEventListener("click", async ()=>{
   try{
 
     const user = auth.currentUser;
-
-    const imageUrls = imagesInput.value
-      .split(",")
-      .map(id=>`https://ucarecdn.com/${id}/`);
 
     const selectedCity = document.getElementById("city").value;
     const selectedCategory = typeSelect.value;
@@ -217,16 +210,16 @@ publishBtn.addEventListener("click", async ()=>{
       salary: document.getElementById("salary")?.value || "",
       brand: document.getElementById("brand")?.value || "",
 
-      images: imageUrls,
+      images: uploadedImages,
       userId: user.uid,
       createdAt: serverTimestamp()
     });
 
-    // عرض رسالة النجاح
     successBox.style.display = "block";
     publishBtn.innerText = "✅ تم النشر";
 
-    // تحويل مباشرة إلى صفحة المنتجات مع الفئة والولاية لفلترة المنتج
+    uploadedImages = []; // تنظيف بعد النشر
+
     setTimeout(()=>{
       window.location.href = `products.html?category=${encodeURIComponent(selectedCategory)}&city=${encodeURIComponent(selectedCity)}`;
     },1500);
