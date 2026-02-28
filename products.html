@@ -195,7 +195,6 @@ onAuthStateChanged(auth, async(user)=>{
   country = snap.data().country || "السودان";
   document.getElementById("countryName").innerText = "📍 الدولة: " + country;
 
-  // 🔥 مهم جداً
   loadStates();
 });
 
@@ -223,6 +222,17 @@ function loadStates(){
     statesBox.appendChild(b);
   });
   loadProducts();
+}
+
+/* 🔥 دالة تنظيف رابط الصورة */
+function fixImageUrl(img){
+  if(!img) return "";
+
+  // إذا الرابط كامل وصحيح
+  if(img.startsWith("http")) return img;
+
+  // إذا كان uuid فقط
+  return `https://ucarecdn.com/${img}/`;
 }
 
 function loadProducts(){
@@ -255,10 +265,18 @@ function loadProducts(){
       );
       const whatsappLink = `https://wa.me/${cleanNumber}?text=${message}`;
 
+      const imagesHtml = (p.images||[])
+        .slice(0,3)
+        .map(img=>{
+          const fixed = fixImageUrl(img);
+          return `<img src="${fixed}" onclick="viewImage('${fixed}')">`;
+        })
+        .join("");
+
       box.innerHTML+=`
       <div class="product-card">
         <div class="product-images">
-          ${(p.images||[]).slice(0,3).map(img=>`<img src="${img}" onclick="viewImage('${img}')">`).join("")}
+          ${imagesHtml}
         </div>
         <b>${p.title}</b>
         <div class="price">${p.price}</div>
