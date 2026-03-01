@@ -224,15 +224,10 @@ function loadStates(){
   loadProducts();
 }
 
-/* 🔥 دالة تنظيف رابط الصورة */
+/* ✅ تم تعديلها لعرض الرابط كما هو بدون توليد */
 function fixImageUrl(img){
   if(!img) return "";
-
-  // إذا الرابط كامل وصحيح
-  if(img.startsWith("http")) return img;
-
-  // إذا كان uuid فقط
-  return `https://ucarecdn.com/${img}/`;
+  return img; // فقط يرجع الرابط كما هو محفوظ في Firestore
 }
 
 function loadProducts(){
@@ -283,7 +278,6 @@ function loadProducts(){
         <div class="product-info">
           📂 ${p.category}<br>
           📍 ${p.city}
-          ${p.tradeType ? `<br>🛒 ${p.tradeType}` : ""}
         </div>
         <div class="whatsapp-number">
           📞 ${p.whatsapp || "غير متوفر"}
