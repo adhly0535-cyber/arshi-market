@@ -246,10 +246,17 @@ function loadProducts(){
     snap.forEach(docSnap=>{
       const p=docSnap.data();
 
-    const imagesHtml = Array.isArray(p.images) && p.images.length
-  ? p.images.slice(0,3).map(img =>
-      `<img src="${img}" loading="lazy" onclick="viewImage('${img}')">`
-    ).join("")
+    .map(img=>{
+  return `
+    <img 
+      src="${img}"
+      loading="lazy"
+      referrerpolicy="no-referrer"
+      onerror="this.src='https://via.placeholder.com/300x200?text=Image'"
+      onclick="viewImage('${img}')"
+    >
+  `;
+})
   : `<img src="https://via.placeholder.com/300x200?text=No+Image">`;
 
       const cleanNumber = (p.whatsapp || "").replace(/\D/g,"");
