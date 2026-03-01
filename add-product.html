@@ -1,99 +1,3 @@
-<!DOCTYPE html>
-<html lang="ar">
-<head>
-<meta charset="UTF-8">
-<title>إضافة منتج</title>
-
-<script>
-UPLOADCARE_PUBLIC_KEY = "3ebd7495cde73c075c2e";
-</script>
-<script src="https://ucarecdn.com/libs/widget/3.x/uploadcare.full.min.js"></script>
-
-<style>
-body{
-  font-family:Arial;
-  background:#f5f5f5;
-  padding:10px;
-}
-input, textarea, button, select{
-  width:100%;
-  margin:6px 0;
-  padding:10px;
-  font-size:14px;
-}
-button{
-  background:#4CAF50;
-  color:#fff;
-  border:none;
-  border-radius:6px;
-  cursor:pointer;
-}
-button:disabled{
-  background:#999;
-}
-.success-box{
-  background:#1e1e1e;
-  color:#fff;
-  padding:20px;
-  border-radius:12px;
-  text-align:center;
-  margin-top:15px;
-  display:none;
-}
-</style>
-</head>
-
-<body>
-
-<h3>إضافة منتج</h3>
-
-<form id="productForm" onsubmit="return false;">
-
-<select id="typeSelect" required>
-  <option value="">اختر نوع المنتج</option>
-  <option value="سيارات">سيارات</option>
-  <option value="عقارات">عقارات</option>
-  <option value="وظائف">وظائف</option>
-  <option value="هواتف">هواتف</option>
-  <option value="لابتوبات">لابتوبات</option>
-</select>
-
-<select id="city" required>
-  <option value="">اختر الولاية / المدينة</option>
-</select>
-
-<input id="title" placeholder="عنوان الإعلان" required>
-<input id="price" placeholder="السعر" required>
-
-<select id="stateInput" required>
-  <option value="">الحالة</option>
-  <option value="جديد">جديد</option>
-  <option value="مستعمل">مستعمل</option>
-</select>
-
-<input id="whatsapp" placeholder="رقم واتساب (249XXXXXXXXX)" required>
-
-<!-- رفع الصور -->
-<input type="hidden"
-  role="uploadcare-uploader"
-  data-multiple="true"
-  data-images-only="true"
-  data-max-files="3"
-  data-clearable="true"
-/>
-
-<div id="extraFields"></div>
-
-<textarea id="desc" placeholder="وصف المنتج" required></textarea>
-
-<button type="button" id="publishBtn">📤 نشر المنتج</button>
-
-</form>
-
-<div class="success-box" id="successBox">
-  ✅ تم نشر المنتج بنجاح
-</div>
-
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -114,19 +18,31 @@ const citySelect = document.getElementById("city");
 const typeSelect = document.getElementById("typeSelect");
 const extra = document.getElementById("extraFields");
 const publishBtn = document.getElementById("publishBtn");
+const imagesInput = document.getElementById("imagesInput");
 const successBox = document.getElementById("successBox");
 
 let country = "";
-let uploadedImages = []; // هنا نخزن الروابط الصحيحة
 
-/* تفعيل Uploadcare */
+/* ✅ تفعيل Uploadcare */
+UPLOADCARE_PUBLIC_KEY = "3ebd7495cde73c075c2e";
+UPLOADCARE_MULTIPLE = true;
+UPLOADCARE_CLEARABLE = true;
+
 const widget = uploadcare.Widget('[role=uploadcare-uploader]');
 
 widget.onUploadComplete(function(info){
-  uploadedImages.push(info.cdnUrl); // نحفظ الرابط الكامل مباشرة
+
+  // 🔥 نحفظ الرابط الكامل وليس uuid
+  let current = imagesInput.value ? imagesInput.value.split(",") : [];
+
+  current.push(info.cdnUrl); // هذا هو التصحيح المهم
+
+  imagesInput.value = current.join(",");
+
 });
 
-/* الولايات السودان */
+
+/* الولايات السودان الكاملة */
 const statesByCountry = {
   "السودان":[
     "الخرطوم","الجزيرة","نهر النيل","البحر الأحمر","كسلا","القضارف",
@@ -135,6 +51,7 @@ const statesByCountry = {
     "الشمالية","النيل الأزرق"
   ]
 };
+
 
 onAuthStateChanged(auth, async(user)=>{
   if(!user){
@@ -145,7 +62,9 @@ onAuthStateChanged(auth, async(user)=>{
   const snap = await getDoc(doc(db,"users",user.uid));
   if(snap.exists()){
     country = snap.data().country;
+
     citySelect.innerHTML = `<option value="">اختر الولاية / المدينة</option>`;
+
     (statesByCountry[country] || []).forEach(c=>{
       const o = document.createElement("option");
       o.value = c;
@@ -155,48 +74,33 @@ onAuthStateChanged(auth, async(user)=>{
   }
 });
 
+
 /* الحقول حسب النوع */
 typeSelect.addEventListener("change", ()=>{
   extra.innerHTML = "";
 
   if(typeSelect.value === "سيارات"){
-    extra.innerHTML = `<input id="model" placeholder="الموديل">`;
+    extra.innerHTML = "";
   }
 
   if(typeSelect.value === "عقارات"){
-    extra.innerHTML = `<input id="rooms" placeholder="عدد الغرف"><input id="area" placeholder="المساحة بالمتر">`;
+    extra.innerHTML = "";
   }
 
   if(typeSelect.value === "وظائف"){
-    extra.innerHTML = `<input id="salary" placeholder="الراتب">`;
+    extra.innerHTML = "";
   }
 
   if(typeSelect.value === "هواتف" || typeSelect.value === "لابتوبات"){
-    extra.innerHTML = `<input id="brand" placeholder="الشركة">`;
+    extra.innerHTML = "";
   }
 });
 
-/* نشر المنتج */
+
+/* ✅ نشر المنتج */
 publishBtn.addEventListener("click", async ()=>{
 
-  const files = widget.value();
-
-  if(!files){
-    alert("يرجى إضافة صورة واحدة على الأقل");
-    return;
-  }
-
-  uploadedImages = [];
-
-  if(files.files){
-    files.files().forEach(file=>{
-      uploadedImages.push(file.cdnUrl);
-    });
-  } else {
-    uploadedImages.push(files.cdnUrl);
-  }
-
-  if(uploadedImages.length === 0){
+  if(!imagesInput.value){
     alert("يرجى إضافة صورة واحدة على الأقل");
     return;
   }
@@ -208,6 +112,14 @@ publishBtn.addEventListener("click", async ()=>{
 
     const user = auth.currentUser;
 
+    if(!user){
+      alert("يجب تسجيل الدخول");
+      return;
+    }
+
+    // 🔥 الآن الصور جاهزة كرابط كامل
+    const imageUrls = imagesInput.value.split(",");
+
     const selectedCity = document.getElementById("city").value;
     const selectedCategory = typeSelect.value;
 
@@ -215,19 +127,17 @@ publishBtn.addEventListener("click", async ()=>{
       title: document.getElementById("title").value,
       price: document.getElementById("price").value,
       desc: document.getElementById("desc").value,
-      state: document.getElementById("stateInput").value,
+      state: document.getElementById("stateInput")?.value || "",
       city: selectedCity,
       category: selectedCategory,
       country: country,
       whatsapp: document.getElementById("whatsapp").value,
-
       model: document.getElementById("model")?.value || "",
       rooms: document.getElementById("rooms")?.value || "",
       area: document.getElementById("area")?.value || "",
       salary: document.getElementById("salary")?.value || "",
       brand: document.getElementById("brand")?.value || "",
-
-      images: uploadedImages,
+      images: imageUrls, // 🔥 نحفظ الرابط الكامل
       userId: user.uid,
       createdAt: serverTimestamp()
     });
@@ -235,10 +145,9 @@ publishBtn.addEventListener("click", async ()=>{
     successBox.style.display = "block";
     publishBtn.innerText = "✅ تم النشر";
 
-    uploadedImages = [];
-
     setTimeout(()=>{
-      window.location.href = `products.html?category=${encodeURIComponent(selectedCategory)}&city=${encodeURIComponent(selectedCity)}`;
+      window.location.href =
+        `products.html?category=${encodeURIComponent(selectedCategory)}&city=${encodeURIComponent(selectedCity)}`;
     },1500);
 
   }catch(error){
@@ -250,9 +159,4 @@ publishBtn.addEventListener("click", async ()=>{
 
 });
 
-    
-
 </script>
-
-</body>
-  </html>
