@@ -1,23 +1,98 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-  <meta charset="UTF-8">
-  <title>إضافة منتج</title>
+<meta charset="UTF-8">
+<title>إضافة منتج</title>
 
-  <!-- Uploadcare -->
-  <script>
-    window.UPLOADCARE_PUBLIC_KEY = "3ebd7495cde73c075c2e";
-    window.UPLOADCARE_MULTIPLE = true;
-    window.UPLOADCARE_CLEARABLE = true;
-  </script>
-  <script src="https://ucarecdn.com/libs/widget/3.x/uploadcare.full.min.js"></script>
+<script>
+UPLOADCARE_PUBLIC_KEY = "3ebd7495cde73c075c2e";
+</script>
+<script src="https://ucarecdn.com/libs/widget/3.x/uploadcare.full.min.js"></script>
 
+<style>
+body{
+  font-family:Arial;
+  background:#f5f5f5;
+  padding:10px;
+}
+input, textarea, button, select{
+  width:100%;
+  margin:6px 0;
+  padding:10px;
+  font-size:14px;
+}
+button{
+  background:#4CAF50;
+  color:#fff;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+}
+button:disabled{
+  background:#999;
+}
+.success-box{
+  background:#1e1e1e;
+  color:#fff;
+  padding:20px;
+  border-radius:12px;
+  text-align:center;
+  margin-top:15px;
+  display:none;
+}
+</style>
 </head>
 
 <body>
 
-<!-- 👇 هنا يجب أن تكون عناصر الصفحة (المدخلات، الزر، إلخ) -->
-<!-- أتوقع عندك فورم هنا -->
+<h3>إضافة منتج</h3>
+
+<form id="productForm" onsubmit="return false;">
+
+<select id="typeSelect" required>
+  <option value="">اختر نوع المنتج</option>
+  <option value="سيارات">سيارات</option>
+  <option value="عقارات">عقارات</option>
+  <option value="وظائف">وظائف</option>
+  <option value="هواتف">هواتف</option>
+  <option value="لابتوبات">لابتوبات</option>
+</select>
+
+<select id="city" required>
+  <option value="">اختر الولاية / المدينة</option>
+</select>
+
+<input id="title" placeholder="عنوان الإعلان" required>
+<input id="price" placeholder="السعر" required>
+
+<select id="stateInput" required>
+  <option value="">الحالة</option>
+  <option value="جديد">جديد</option>
+  <option value="مستعمل">مستعمل</option>
+</select>
+
+<input id="whatsapp" placeholder="رقم واتساب (249XXXXXXXXX)" required>
+
+<!-- رفع الصور -->
+<input type="hidden"
+  role="uploadcare-uploader"
+  data-multiple="true"
+  data-images-only="true"
+  data-max-files="3"
+  data-clearable="true"
+/>
+
+<div id="extraFields"></div>
+
+<textarea id="desc" placeholder="وصف المنتج" required></textarea>
+
+<button type="button" id="publishBtn">📤 نشر المنتج</button>
+
+</form>
+
+<div class="success-box" id="successBox">
+  ✅ تم نشر المنتج بنجاح
+</div>
 
 <script type="module">
 
@@ -35,110 +110,130 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
+const citySelect = document.getElementById("city");
+const typeSelect = document.getElementById("typeSelect");
+const extra = document.getElementById("extraFields");
+const publishBtn = document.getElementById("publishBtn");
+const successBox = document.getElementById("successBox");
+
 let country = "";
+let uploadedImages = []; // هنا نخزن الروابط الصحيحة
 
-/* 🔐 تأكد أن الصفحة اكتملت قبل التنفيذ */
-window.addEventListener("DOMContentLoaded", () => {
+/* تفعيل Uploadcare */
+const widget = uploadcare.Widget('[role=uploadcare-uploader]');
 
-  const citySelect = document.getElementById("city");
-  const typeSelect = document.getElementById("typeSelect");
-  const publishBtn = document.getElementById("publishBtn");
-  const imagesInput = document.getElementById("imagesInput");
-  const successBox = document.getElementById("successBox");
+widget.onUploadComplete(function(info){
+  uploadedImages.push(info.cdnUrl); // نحفظ الرابط الكامل مباشرة
+});
 
-  /* Uploadcare */
-  const widget = uploadcare.Widget('[role=uploadcare-uploader]');
+/* الولايات السودان */
+const statesByCountry = {
+  "السودان":[
+    "الخرطوم","الجزيرة","نهر النيل","البحر الأحمر","كسلا","القضارف",
+    "سنار","النيل الأبيض","شمال كردفان","جنوب كردفان","غرب كردفان",
+    "شمال دارفور","جنوب دارفور","غرب دارفور","وسط دارفور","شرق دارفور",
+    "الشمالية","النيل الأزرق"
+  ]
+};
 
-  widget.onUploadComplete(function(info){
-    let current = imagesInput.value ? imagesInput.value.split(",") : [];
-    current.push(info.cdnUrl);
-    imagesInput.value = current.join(",");
-  });
+onAuthStateChanged(auth, async(user)=>{
+  if(!user){
+    location.href = "login.html";
+    return;
+  }
 
-  /* الولايات */
-  const statesByCountry = {
-    "السودان":[
-      "الخرطوم","الجزيرة","نهر النيل","البحر الأحمر","كسلا","القضارف",
-      "سنار","النيل الأبيض","شمال كردفان","جنوب كردفان","غرب كردفان",
-      "شمال دارفور","جنوب دارفور","غرب دارفور","وسط دارفور","شرق دارفور",
-      "الشمالية","النيل الأزرق"
-    ]
-  };
+  const snap = await getDoc(doc(db,"users",user.uid));
+  if(snap.exists()){
+    country = snap.data().country;
+    citySelect.innerHTML = `<option value="">اختر الولاية / المدينة</option>`;
+    (statesByCountry[country] || []).forEach(c=>{
+      const o = document.createElement("option");
+      o.value = c;
+      o.textContent = c;
+      citySelect.appendChild(o);
+    });
+  }
+});
 
-  onAuthStateChanged(auth, async(user)=>{
-    if(!user){
-      location.href = "login.html";
-      return;
-    }
+/* الحقول حسب النوع */
+typeSelect.addEventListener("change", ()=>{
+  extra.innerHTML = "";
 
-    const snap = await getDoc(doc(db,"users",user.uid));
-    if(snap.exists()){
-      country = snap.data().country;
+  if(typeSelect.value === "سيارات"){
+    extra.innerHTML = `<input id="model" placeholder="الموديل">`;
+  }
 
-      citySelect.innerHTML = `<option value="">اختر الولاية</option>`;
+  if(typeSelect.value === "عقارات"){
+    extra.innerHTML = `<input id="rooms" placeholder="عدد الغرف"><input id="area" placeholder="المساحة بالمتر">`;
+  }
 
-      (statesByCountry[country] || []).forEach(c=>{
-        const o = document.createElement("option");
-        o.value = c;
-        o.textContent = c;
-        citySelect.appendChild(o);
-      });
-    }
-  });
+  if(typeSelect.value === "وظائف"){
+    extra.innerHTML = `<input id="salary" placeholder="الراتب">`;
+  }
 
-  /* نشر المنتج */
-  publishBtn.addEventListener("click", async ()=>{
+  if(typeSelect.value === "هواتف" || typeSelect.value === "لابتوبات"){
+    extra.innerHTML = `<input id="brand" placeholder="الشركة">`;
+  }
+});
 
-    if(!imagesInput.value){
-      alert("يرجى إضافة صورة واحدة على الأقل");
-      return;
-    }
+/* نشر المنتج */
+publishBtn.addEventListener("click", async ()=>{
 
-    publishBtn.disabled = true;
-    publishBtn.innerText = "جاري النشر...";
+  if(uploadedImages.length === 0){
+    alert("يرجى إضافة صورة واحدة على الأقل");
+    return;
+  }
 
-    try{
+  publishBtn.disabled = true;
+  publishBtn.innerText = "جاري النشر...";
 
-      const user = auth.currentUser;
-      if(!user){
-        alert("يجب تسجيل الدخول");
-        return;
-      }
+  try{
 
-      const imageUrls = imagesInput.value.split(",");
+    const user = auth.currentUser;
 
-      await addDoc(collection(db,"products"),{
-        title: document.getElementById("title").value,
-        price: document.getElementById("price").value,
-        desc: document.getElementById("desc").value,
-        city: citySelect.value,
-        category: typeSelect.value,
-        country: country,
-        whatsapp: document.getElementById("whatsapp").value,
-        images: imageUrls,
-        userId: user.uid,
-        createdAt: serverTimestamp()
-      });
+    const selectedCity = document.getElementById("city").value;
+    const selectedCategory = typeSelect.value;
 
-      successBox.style.display = "block";
-      publishBtn.innerText = "✅ تم النشر";
+    await addDoc(collection(db,"products"),{
+      title: document.getElementById("title").value,
+      price: document.getElementById("price").value,
+      desc: document.getElementById("desc").value,
+      state: document.getElementById("stateInput").value,
+      city: selectedCity,
+      category: selectedCategory,
+      country: country,
+      whatsapp: document.getElementById("whatsapp").value,
 
-      setTimeout(()=>{
-        window.location.href = "products.html";
-      },1500);
+      model: document.getElementById("model")?.value || "",
+      rooms: document.getElementById("rooms")?.value || "",
+      area: document.getElementById("area")?.value || "",
+      salary: document.getElementById("salary")?.value || "",
+      brand: document.getElementById("brand")?.value || "",
 
-    }catch(error){
-      console.error(error);
-      alert("حدث خطأ أثناء النشر");
-      publishBtn.disabled = false;
-      publishBtn.innerText = "📤 نشر المنتج";
-    }
+      images: uploadedImages,
+      userId: user.uid,
+      createdAt: serverTimestamp()
+    });
 
-  });
+    successBox.style.display = "block";
+    publishBtn.innerText = "✅ تم النشر";
+
+    uploadedImages = []; // تنظيف بعد النشر
+
+    setTimeout(()=>{
+      window.location.href = `products.html?category=${encodeURIComponent(selectedCategory)}&city=${encodeURIComponent(selectedCity)}`;
+    },1500);
+
+  }catch(error){
+    alert("حدث خطأ أثناء النشر");
+    console.error(error);
+    publishBtn.disabled = false;
+    publishBtn.innerText = "📤 نشر المنتج";
+  }
 
 });
 
 </script>
 
 </body>
-</html>
+  </html>
