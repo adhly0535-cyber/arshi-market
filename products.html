@@ -135,8 +135,8 @@ body{
   <button onclick="selectCategory(this,'سيارات')">🚗 سيارات</button>
   <button onclick="selectCategory(this,'عقارات')">🏢 عقارات</button>
   <button onclick="selectCategory(this,'وظائف')">🧑‍💼 وظائف</button>
-  <button onclick="selectCategory(this,'إلكترونيات')">📱 إلكترونيات</button>
-  <button onclick="selectCategory(this,'تجارة')">🛒 تجارة</button>
+  <button onclick="selectCategory(this,'هواتف')">📱 هواتف</button>
+  <button onclick="selectCategory(this,'لابتوبات')">💻 لابتوبات</button>
 </div>
 
 <div class="states" id="statesBox" style="display:none;"></div>
@@ -184,10 +184,7 @@ const statesByCountry = {
 };
 
 onAuthStateChanged(auth, async(user)=>{
-  if(!user){
-    console.log("المستخدم غير مسجل دخول");
-    return;
-  }
+  if(!user) return;
 
   const snap = await getDoc(doc(db,"users",user.uid));
   if(!snap.exists()) return;
@@ -224,12 +221,6 @@ function loadStates(){
   loadProducts();
 }
 
-/* ✅ تم تعديلها لعرض الرابط كما هو بدون توليد */
-function fixImageUrl(img){
-  if(!img) return "";
-  return img; // فقط يرجع الرابط كما هو محفوظ في Firestore
-}
-
 function loadProducts(){
   if(!country || !currentCategory || !currentState) return;
 
@@ -254,19 +245,19 @@ function loadProducts(){
 
     snap.forEach(docSnap=>{
       const p=docSnap.data();
+
+      const imagesHtml = (p.images || [])
+        .slice(0,3)
+        .map(img=>{
+          return `<img src="${img}" onclick="viewImage('${img}')">`;
+        })
+        .join("");
+
       const cleanNumber = (p.whatsapp || "").replace(/\D/g,"");
       const message = encodeURIComponent(
         "مرحبًا 👋\nأرغب في الاستفسار عن المنتج:\n" + p.title
       );
       const whatsappLink = `https://wa.me/${cleanNumber}?text=${message}`;
-
-      const imagesHtml = (p.images||[])
-        .slice(0,3)
-        .map(img=>{
-          const fixed = fixImageUrl(img);
-          return `<img src="${fixed}" onclick="viewImage('${fixed}')">`;
-        })
-        .join("");
 
       box.innerHTML+=`
       <div class="product-card">
@@ -298,4 +289,4 @@ window.goAddProduct=()=>location.href="add-product.html";
 
 </script>
 </body>
-</html>
+  </html>
