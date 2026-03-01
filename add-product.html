@@ -177,26 +177,28 @@ typeSelect.addEventListener("change", ()=>{
 });
 
 /* نشر المنتج */
-const files = widget.value();
+publishBtn.addEventListener("click", async ()=>{
 
-if(!files){
-  alert("يرجى إضافة صورة واحدة على الأقل");
-  return;
-}
+  const files = widget.value();
 
-uploadedImages = [];
+  if(!files){
+    alert("يرجى إضافة صورة واحدة على الأقل");
+    return;
+  }
 
-if(files.files){
-  files.files().forEach(file=>{
-    uploadedImages.push(file.cdnUrl);
-  });
-} else {
-  uploadedImages.push(files.cdnUrl);
-}
+  uploadedImages = [];
 
-if(uploadedImages.length === 0){
-  alert("يرجى إضافة صورة واحدة على الأقل");
-  return;
+  if(files.files){
+    files.files().forEach(file=>{
+      uploadedImages.push(file.cdnUrl);
+    });
+  } else {
+    uploadedImages.push(files.cdnUrl);
+  }
+
+  if(uploadedImages.length === 0){
+    alert("يرجى إضافة صورة واحدة على الأقل");
+    return;
   }
 
   publishBtn.disabled = true;
@@ -233,7 +235,7 @@ if(uploadedImages.length === 0){
     successBox.style.display = "block";
     publishBtn.innerText = "✅ تم النشر";
 
-    uploadedImages = []; // تنظيف بعد النشر
+    uploadedImages = [];
 
     setTimeout(()=>{
       window.location.href = `products.html?category=${encodeURIComponent(selectedCategory)}&city=${encodeURIComponent(selectedCity)}`;
@@ -247,6 +249,8 @@ if(uploadedImages.length === 0){
   }
 
 });
+
+    
 
 </script>
 
