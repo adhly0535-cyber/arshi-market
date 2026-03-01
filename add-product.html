@@ -123,7 +123,17 @@ let uploadedImages = []; // هنا نخزن الروابط الصحيحة
 const widget = uploadcare.Widget('[role=uploadcare-uploader]');
 
 widget.onUploadComplete(function(info){
-  uploadedImages.push(info.cdnUrl + "-/resize/800x/");
+
+  uploadedImages = [];
+
+  if(info.files){
+    info.files().forEach(file=>{
+      uploadedImages.push(file.cdnUrl + "-/resize/800x/");
+    });
+  }else{
+    uploadedImages.push(info.cdnUrl + "-/resize/800x/");
+  }
+
 });
 /* الولايات السودان */
 const statesByCountry = {
