@@ -1,14 +1,25 @@
+<!DOCTYPE html>
+<html lang="ar">
 <head>
   <meta charset="UTF-8">
   <title>إضافة منتج</title>
 
-  <!-- 🔥 هذا مهم -->
+  <!-- Uploadcare -->
+  <script>
+    window.UPLOADCARE_PUBLIC_KEY = "3ebd7495cde73c075c2e";
+    window.UPLOADCARE_MULTIPLE = true;
+    window.UPLOADCARE_CLEARABLE = true;
+  </script>
   <script src="https://ucarecdn.com/libs/widget/3.x/uploadcare.full.min.js"></script>
 
 </head>
 
-<script type="module">
+<body>
 
+<!-- 👇 هنا يجب أن تكون عناصر الصفحة (المدخلات، الزر، إلخ) -->
+<!-- أتوقع عندك فورم هنا -->
+
+<script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, collection, addDoc, serverTimestamp, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -24,149 +35,110 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-const citySelect = document.getElementById("city");
-const typeSelect = document.getElementById("typeSelect");
-const extra = document.getElementById("extraFields");
-const publishBtn = document.getElementById("publishBtn");
-const imagesInput = document.getElementById("imagesInput");
-const successBox = document.getElementById("successBox");
-
 let country = "";
 
-/* ✅ تفعيل Uploadcare */
-UPLOADCARE_PUBLIC_KEY = "3ebd7495cde73c075c2e";
-UPLOADCARE_MULTIPLE = true;
-UPLOADCARE_CLEARABLE = true;
+/* 🔐 تأكد أن الصفحة اكتملت قبل التنفيذ */
+window.addEventListener("DOMContentLoaded", () => {
 
-const widget = uploadcare.Widget('[role=uploadcare-uploader]');
+  const citySelect = document.getElementById("city");
+  const typeSelect = document.getElementById("typeSelect");
+  const publishBtn = document.getElementById("publishBtn");
+  const imagesInput = document.getElementById("imagesInput");
+  const successBox = document.getElementById("successBox");
 
-widget.onUploadComplete(function(info){
+  /* Uploadcare */
+  const widget = uploadcare.Widget('[role=uploadcare-uploader]');
 
-  // 🔥 نحفظ الرابط الكامل وليس uuid
-  let current = imagesInput.value ? imagesInput.value.split(",") : [];
+  widget.onUploadComplete(function(info){
+    let current = imagesInput.value ? imagesInput.value.split(",") : [];
+    current.push(info.cdnUrl);
+    imagesInput.value = current.join(",");
+  });
 
-  current.push(info.cdnUrl); // هذا هو التصحيح المهم
+  /* الولايات */
+  const statesByCountry = {
+    "السودان":[
+      "الخرطوم","الجزيرة","نهر النيل","البحر الأحمر","كسلا","القضارف",
+      "سنار","النيل الأبيض","شمال كردفان","جنوب كردفان","غرب كردفان",
+      "شمال دارفور","جنوب دارفور","غرب دارفور","وسط دارفور","شرق دارفور",
+      "الشمالية","النيل الأزرق"
+    ]
+  };
 
-  imagesInput.value = current.join(",");
-
-});
-
-
-/* الولايات السودان الكاملة */
-const statesByCountry = {
-  "السودان":[
-    "الخرطوم","الجزيرة","نهر النيل","البحر الأحمر","كسلا","القضارف",
-    "سنار","النيل الأبيض","شمال كردفان","جنوب كردفان","غرب كردفان",
-    "شمال دارفور","جنوب دارفور","غرب دارفور","وسط دارفور","شرق دارفور",
-    "الشمالية","النيل الأزرق"
-  ]
-};
-
-
-onAuthStateChanged(auth, async(user)=>{
-  if(!user){
-    location.href = "login.html";
-    return;
-  }
-
-  const snap = await getDoc(doc(db,"users",user.uid));
-  if(snap.exists()){
-    country = snap.data().country;
-
-    citySelect.innerHTML = `<option value="">اختر الولاية / المدينة</option>`;
-
-    (statesByCountry[country] || []).forEach(c=>{
-      const o = document.createElement("option");
-      o.value = c;
-      o.textContent = c;
-      citySelect.appendChild(o);
-    });
-  }
-});
-
-
-/* الحقول حسب النوع */
-typeSelect.addEventListener("change", ()=>{
-  extra.innerHTML = "";
-
-  if(typeSelect.value === "سيارات"){
-    extra.innerHTML = "";
-  }
-
-  if(typeSelect.value === "عقارات"){
-    extra.innerHTML = "";
-  }
-
-  if(typeSelect.value === "وظائف"){
-    extra.innerHTML = "";
-  }
-
-  if(typeSelect.value === "هواتف" || typeSelect.value === "لابتوبات"){
-    extra.innerHTML = "";
-  }
-});
-
-
-/* ✅ نشر المنتج */
-publishBtn.addEventListener("click", async ()=>{
-
-  if(!imagesInput.value){
-    alert("يرجى إضافة صورة واحدة على الأقل");
-    return;
-  }
-
-  publishBtn.disabled = true;
-  publishBtn.innerText = "جاري النشر...";
-
-  try{
-
-    const user = auth.currentUser;
-
+  onAuthStateChanged(auth, async(user)=>{
     if(!user){
-      alert("يجب تسجيل الدخول");
+      location.href = "login.html";
       return;
     }
 
-    // 🔥 الآن الصور جاهزة كرابط كامل
-    const imageUrls = imagesInput.value.split(",");
+    const snap = await getDoc(doc(db,"users",user.uid));
+    if(snap.exists()){
+      country = snap.data().country;
 
-    const selectedCity = document.getElementById("city").value;
-    const selectedCategory = typeSelect.value;
+      citySelect.innerHTML = `<option value="">اختر الولاية</option>`;
 
-    await addDoc(collection(db,"products"),{
-      title: document.getElementById("title").value,
-      price: document.getElementById("price").value,
-      desc: document.getElementById("desc").value,
-      state: document.getElementById("stateInput")?.value || "",
-      city: selectedCity,
-      category: selectedCategory,
-      country: country,
-      whatsapp: document.getElementById("whatsapp").value,
-      model: document.getElementById("model")?.value || "",
-      rooms: document.getElementById("rooms")?.value || "",
-      area: document.getElementById("area")?.value || "",
-      salary: document.getElementById("salary")?.value || "",
-      brand: document.getElementById("brand")?.value || "",
-      images: imageUrls, // 🔥 نحفظ الرابط الكامل
-      userId: user.uid,
-      createdAt: serverTimestamp()
-    });
+      (statesByCountry[country] || []).forEach(c=>{
+        const o = document.createElement("option");
+        o.value = c;
+        o.textContent = c;
+        citySelect.appendChild(o);
+      });
+    }
+  });
 
-    successBox.style.display = "block";
-    publishBtn.innerText = "✅ تم النشر";
+  /* نشر المنتج */
+  publishBtn.addEventListener("click", async ()=>{
 
-    setTimeout(()=>{
-      window.location.href =
-        `products.html?category=${encodeURIComponent(selectedCategory)}&city=${encodeURIComponent(selectedCity)}`;
-    },1500);
+    if(!imagesInput.value){
+      alert("يرجى إضافة صورة واحدة على الأقل");
+      return;
+    }
 
-  }catch(error){
-    alert("حدث خطأ أثناء النشر");
-    console.error(error);
-    publishBtn.disabled = false;
-    publishBtn.innerText = "📤 نشر المنتج";
-  }
+    publishBtn.disabled = true;
+    publishBtn.innerText = "جاري النشر...";
+
+    try{
+
+      const user = auth.currentUser;
+      if(!user){
+        alert("يجب تسجيل الدخول");
+        return;
+      }
+
+      const imageUrls = imagesInput.value.split(",");
+
+      await addDoc(collection(db,"products"),{
+        title: document.getElementById("title").value,
+        price: document.getElementById("price").value,
+        desc: document.getElementById("desc").value,
+        city: citySelect.value,
+        category: typeSelect.value,
+        country: country,
+        whatsapp: document.getElementById("whatsapp").value,
+        images: imageUrls,
+        userId: user.uid,
+        createdAt: serverTimestamp()
+      });
+
+      successBox.style.display = "block";
+      publishBtn.innerText = "✅ تم النشر";
+
+      setTimeout(()=>{
+        window.location.href = "products.html";
+      },1500);
+
+    }catch(error){
+      console.error(error);
+      alert("حدث خطأ أثناء النشر");
+      publishBtn.disabled = false;
+      publishBtn.innerText = "📤 نشر المنتج";
+    }
+
+  });
 
 });
 
 </script>
+
+</body>
+</html>
