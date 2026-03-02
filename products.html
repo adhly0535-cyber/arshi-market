@@ -6,123 +6,133 @@
 
 <style>
 body{
-  font-family: Arial;
-  margin:0;
-  padding-bottom:80px;
-  background:#f5f5f5;
+font-family:Arial;
+margin:0;
+padding-bottom:80px;
+background:#f5f5f5;
 }
+
 .country-name{
-  background:#4CAF50;
-  color:#fff;
-  text-align:center;
-  padding:8px;
-  font-weight:bold;
+background:#4CAF50;
+color:#fff;
+text-align:center;
+padding:8px;
+font-weight:bold;
 }
-.categories, .states{
-  display:flex;
-  gap:8px;
-  padding:10px;
-  background:#fff;
-  overflow-x:auto;
+
+.categories,.states{
+display:flex;
+gap:8px;
+padding:10px;
+background:#fff;
+overflow-x:auto;
 }
-.categories button, .states button{
-  border:none;
-  background:#eee;
-  padding:8px 14px;
-  border-radius:20px;
-  cursor:pointer;
-  white-space:nowrap;
+
+.categories button,.states button{
+border:none;
+background:#eee;
+padding:8px 14px;
+border-radius:20px;
+cursor:pointer;
+white-space:nowrap;
 }
-.categories button.active,
-.states button.active{
-  background:#4CAF50;
-  color:#fff;
+
+.active{
+background:#4CAF50!important;
+color:#fff;
 }
+
 .products{
-  padding:10px;
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:10px;
+padding:10px;
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:10px;
 }
+
 .product-card{
-  background:#fff;
-  padding:8px;
-  border-radius:10px;
+background:#fff;
+padding:8px;
+border-radius:10px;
 }
+
 .product-images{
-  display:flex;
-  gap:4px;
+display:flex;
+gap:4px;
 }
+
 .product-images img{
-  width:32%;
-  height:90px;
-  object-fit:cover;
-  border-radius:6px;
-  cursor:pointer;
+width:32%;
+height:90px;
+object-fit:cover;
+border-radius:6px;
+cursor:pointer;
 }
+
 .price{
-  color:#4CAF50;
-  font-weight:bold;
+color:#4CAF50;
+font-weight:bold;
 }
+
 .product-info{
-  font-size:12px;
-  color:#555;
+font-size:13px;
+color:#555;
+margin-top:4px;
 }
+
 .whatsapp-number{
-  font-size:12px;
-  margin-top:4px;
-  color:#333;
-  word-break:break-all;
+font-size:13px;
+margin-top:4px;
 }
+
 .whatsapp-btn{
-  width:100%;
-  margin-top:6px;
-  background:#25D366;
-  color:#fff;
-  border:none;
-  padding:6px;
-  border-radius:6px;
-  cursor:pointer;
+margin-top:6px;
+background:#25D366;
+color:#fff;
+border:none;
+padding:8px;
+border-radius:6px;
+cursor:pointer;
+width:100%;
+font-weight:bold;
 }
+
 .bottom-nav{
-  position:fixed;
-  bottom:0;
-  width:100%;
-  background:#fff;
-  display:flex;
-  justify-content:space-around;
-  padding:6px 0;
-  border-top:1px solid #ccc;
+position:fixed;
+bottom:0;
+width:100%;
+background:#fff;
+display:flex;
+justify-content:space-around;
+border-top:1px solid #ccc;
 }
-.bottom-nav button{
-  background:none;
-  border:none;
-  font-size:13px;
-}
+
 .add-product-fab{
-  position:fixed;
-  bottom:90px;
-  left:20px;
-  background:#4CAF50;
-  color:#fff;
-  border:none;
-  width:55px;
-  height:55px;
-  border-radius:50%;
-  font-size:28px;
+position:fixed;
+bottom:90px;
+left:20px;
+background:#4CAF50;
+color:#fff;
+border:none;
+width:55px;
+height:55px;
+border-radius:50%;
+font-size:28px;
+cursor:pointer;
 }
+
 .image-viewer{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.85);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  z-index:9999;
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.85);
+display:none;
+align-items:center;
+justify-content:center;
+z-index:9999;
 }
+
 .image-viewer img{
-  max-width:95%;
-  max-height:95%;
+max-width:95%;
+max-height:95%;
 }
 </style>
 </head>
@@ -132,167 +142,255 @@ body{
 <div id="countryName" class="country-name"></div>
 
 <div class="categories">
-  <button onclick="selectCategory(this,'سيارات')">🚗 سيارات</button>
-  <button onclick="selectCategory(this,'عقارات')">🏢 عقارات</button>
-  <button onclick="selectCategory(this,'وظائف')">🧑‍💼 وظائف</button>
-  <button onclick="selectCategory(this,'هواتف')">📱 هواتف</button>
-  <button onclick="selectCategory(this,'لابتوبات')">💻 لابتوبات</button>
+<button onclick="selectCategory(this,'سيارات')">🚗 سيارات</button>
+<button onclick="selectCategory(this,'عقارات')">🏢 عقارات</button>
+<button onclick="selectCategory(this,'وظائف')">💼 وظائف</button>
+<button onclick="selectCategory(this,'إلكترونيات')">📱 إلكترونيات</button>
+<button onclick="selectCategory(this,'تجارة')">🛒 تجارة</button>
 </div>
 
-<div class="states" id="statesBox" style="display:none;"></div>
-<div class="products" id="products"></div>
+<div id="statesBox" class="states"></div>
+<div id="products" class="products"></div>
 
 <button class="add-product-fab" onclick="goAddProduct()">+</button>
 
 <div class="bottom-nav">
-  <button onclick="go('products.html')">🏠<br>الرئيسية</button>
-  <button onclick="go('account.html')">👤<br>الحساب</button>
-  <button onclick="go('settings.html')">⚙️<br>الإعدادات</button>
+<button onclick="go('products.html')">🏠</button>
+<button onclick="go('account.html')">👤</button>
+<button onclick="go('settings.html')">⚙️</button>
 </div>
 
-<div class="image-viewer" id="imageViewer" onclick="this.style.display='none'">
-  <img id="viewerImg">
+<div class="image-viewer" id="imageViewer"
+onclick="this.style.display='none'">
+<img id="viewerImg">
 </div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, onSnapshot, doc, getDoc, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyD3hAvhSDs-lX7ORCOR0DODT3l_S_gJA2o",
-  authDomain: "arshi-market.firebaseapp.com",
-  projectId: "arshi-market",
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+getFirestore,
+collection,
+onSnapshot,
+doc,
+getDoc,
+query,
+where
+}
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+import {
+getAuth,
+onAuthStateChanged
+}
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const firebaseConfig={
+apiKey:"AIzaSyD3hAvhSDs-lX7ORCOR0DODT3l_S_gJA2o",
+authDomain:"arshi-market.firebaseapp.com",
+projectId:"arshi-market"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
+const app=initializeApp(firebaseConfig);
+const db=getFirestore(app);
+const auth=getAuth(app);
 
-let country = "";
-let currentCategory = "";
-let currentState = "";
-let unsubscribe = null;
+let country="";
+let currentCategory="";
+let currentState="";
+let unsubscribe=null;
 
-const statesByCountry = {
-  "السودان":[
-    "الخرطوم","الجزيرة","نهر النيل","البحر الأحمر","كسلا","القضارف",
-    "سنار","النيل الأبيض","شمال كردفان","جنوب كردفان","غرب كردفان",
-    "شمال دارفور","جنوب دارفور","غرب دارفور","وسط دارفور","شرق دارفور",
-    "الشمالية","النيل الأزرق"
-  ]
+const statesByCountry={
+"السودان":[
+"الخرطوم","الجزيرة","نهر النيل","البحر الأحمر",
+"كسلا","القضارف","سنار","النيل الأبيض",
+"شمال كردفان","جنوب كردفان","غرب كردفان",
+"شمال دارفور","جنوب دارفور","غرب دارفور",
+"وسط دارفور","شرق دارفور","الشمالية","النيل الأزرق"
+]
 };
 
-onAuthStateChanged(auth, async(user)=>{
-  if(!user) return;
+onAuthStateChanged(auth,async(user)=>{
+if(!user) return;
 
-  const snap = await getDoc(doc(db,"users",user.uid));
-  if(!snap.exists()) return;
+const snap=await getDoc(doc(db,"users",user.uid));
+if(!snap.exists()) return;
 
-  country = snap.data().country || "السودان";
-  document.getElementById("countryName").innerText = "📍 الدولة: " + country;
+country=snap.data().country || "السودان";
+document.getElementById("countryName").innerText=
+"📍 الدولة: "+country;
 
-  loadStates();
+loadStates();
 });
 
 window.selectCategory=(btn,cat)=>{
-  document.querySelectorAll(".categories button").forEach(b=>b.classList.remove("active"));
-  btn.classList.add("active");
-  currentCategory = cat;
-  loadStates();
+document.querySelectorAll(".categories button")
+.forEach(b=>b.classList.remove("active"));
+
+btn.classList.add("active");
+currentCategory=cat;
+loadStates();
 };
 
+/* تحميل الولايات او نوع التجارة */
 function loadStates(){
-  const statesBox = document.getElementById("statesBox");
-  statesBox.style.display="flex";
-  statesBox.innerHTML="";
-  (statesByCountry[country] || []).forEach((s,i)=>{
-    const b=document.createElement("button");
-    b.textContent=s;
-    b.onclick=()=>{
-      document.querySelectorAll(".states button").forEach(x=>x.classList.remove("active"));
-      b.classList.add("active");
-      currentState=s;
-      loadProducts();
-    };
-    if(i===0){ currentState=s; b.classList.add("active"); }
-    statesBox.appendChild(b);
-  });
-  loadProducts();
+
+const box=document.getElementById("statesBox");
+box.innerHTML="";
+
+/* قسم التجارة */
+if(currentCategory==="تجارة"){
+
+["بيع أفراد","بيع جملة"].forEach((t,i)=>{
+
+const b=document.createElement("button");
+b.textContent=t;
+
+b.onclick=()=>{
+document.querySelectorAll(".states button")
+.forEach(x=>x.classList.remove("active"));
+
+b.classList.add("active");
+currentState=t;
+loadProducts();
+};
+
+if(i===0){
+currentState=t;
+b.classList.add("active");
 }
 
+box.appendChild(b);
+});
+
+return;
+}
+
+/* باقي الأقسام */
+(statesByCountry[country]||[]).forEach((s,i)=>{
+
+const b=document.createElement("button");
+b.textContent=s;
+
+b.onclick=()=>{
+document.querySelectorAll(".states button")
+.forEach(x=>x.classList.remove("active"));
+
+b.classList.add("active");
+currentState=s;
+loadProducts();
+};
+
+if(i===0){
+currentState=s;
+b.classList.add("active");
+}
+
+box.appendChild(b);
+});
+
+loadProducts();
+}
+
+/* تحميل المنتجات */
 function loadProducts(){
-  if(!country || !currentCategory || !currentState) return;
 
-  const box=document.getElementById("products");
-  box.innerHTML="⏳ جاري التحميل...";
-  if(unsubscribe) unsubscribe();
+if(!currentCategory || !currentState) return;
 
-  const q=query(
-    collection(db,"products"),
-    where("country","==",country),
-    where("category","==",currentCategory),
-    where("city","==",currentState)
-  );
+const box=document.getElementById("products");
+box.innerHTML="⏳ جاري التحميل...";
 
-  unsubscribe = onSnapshot(q,snap=>{
-    box.innerHTML="";
+if(unsubscribe) unsubscribe();
 
-    if(snap.empty){
-      box.innerHTML="😢 لا توجد منتجات حالياً";
-      return;
-    }
+const q=query(
+collection(db,"products"),
+where("category","==",currentCategory),
+where("city","==",currentState)
+);
 
-    snap.forEach(docSnap=>{
-      const p=docSnap.data();
+unsubscribe=onSnapshot(q,snap=>{
 
-    .map(img=>{
-  return `
-    <img 
-      src="${img}"
-      loading="lazy"
-      referrerpolicy="no-referrer"
-      onerror="this.src='https://via.placeholder.com/300x200?text=Image'"
-      onclick="viewImage('${img}')"
-    >
-  `;
-})
-  : `<img src="https://via.placeholder.com/300x200?text=No+Image">`;
+box.innerHTML="";
 
-      const cleanNumber = (p.whatsapp || "").replace(/\D/g,"");
-      const message = encodeURIComponent(
-        "مرحبًا 👋\nأرغب في الاستفسار عن المنتج:\n" + p.title
-      );
-      const whatsappLink = `https://wa.me/${cleanNumber}?text=${message}`;
+if(snap.empty){
+box.innerHTML="😢 لا توجد منتجات";
+return;
+}
 
-      box.innerHTML+=`
-      <div class="product-card">
-        <div class="product-images">
-          ${imagesHtml}
-        </div>
-        <b>${p.title}</b>
-        <div class="price">${p.price}</div>
-        <div class="product-info">
-          📂 ${p.category}<br>
-          📍 ${p.city}
-        </div>
-        <div class="whatsapp-number">
-          📞 ${p.whatsapp || "غير متوفر"}
-        </div>
-        ${p.whatsapp ? `<button class="whatsapp-btn" onclick="window.open('${whatsappLink}','_blank')">💬 تواصل عبر واتساب</button>` : ""}
-      </div>`;
-    });
-  });
+snap.forEach(docSnap=>{
+
+const p = docSnap.data();
+
+/* الصور */
+const imagesHtml =
+Array.isArray(p.images) && p.images.length
+? p.images.slice(0,3).map(img=>`
+<img src="${img}"
+loading="lazy"
+onclick="viewImage('${img}')">
+`).join("")
+:
+`<img src="https://via.placeholder.com/300x200?text=No+Image">`;
+
+/* واتساب */
+const cleanNumber=(p.whatsapp||"").replace(/\D/g,"");
+
+const message=encodeURIComponent(
+"مرحبًا 👋\nأرغب في الاستفسار عن المنتج:\n"+p.title
+);
+
+const whatsappLink=
+`https://wa.me/${cleanNumber}?text=${message}`;
+
+box.innerHTML+=`
+<div class="product-card">
+
+<div class="product-images">
+${imagesHtml}
+</div>
+
+<b>${p.title}</b>
+
+<div class="price">${p.price}</div>
+
+<div class="product-info">
+📂 ${p.category}<br>
+📍 ${p.city}
+</div>
+
+<div class="whatsapp-number">
+📞 ${p.whatsapp || "غير متوفر"}
+</div>
+
+${
+p.whatsapp
+? `<button class="whatsapp-btn"
+onclick="window.open('${whatsappLink}','_blank')">
+💬 تواصل عبر واتساب
+</button>`
+: ""
+}
+
+</div>
+`;
+
+});
+
+});
+
 }
 
 window.viewImage=(src)=>{
-  document.getElementById("viewerImg").src=src;
-  document.getElementById("imageViewer").style.display="flex";
+document.getElementById("viewerImg").src=src;
+document.getElementById("imageViewer").style.display="flex";
 };
 
 window.go=p=>location.href=p;
 window.goAddProduct=()=>location.href="add-product.html";
 
 </script>
+
 </body>
   </html>
