@@ -58,6 +58,7 @@ border-radius:10px;
 .product-images{
 display:flex;
 gap:4px;
+flex-wrap:wrap;
 }
 
 .product-images img{
@@ -160,42 +161,24 @@ max-height:95%;
 <button onclick="go('settings.html')">⚙️</button>
 </div>
 
-<div class="image-viewer" id="imageViewer"
-onclick="this.style.display='none'">
+<div class="image-viewer" id="imageViewer" onclick="this.style.display='none'">
 <img id="viewerImg">
 </div>
 
 <script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, onSnapshot, doc, getDoc, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-import { initializeApp }
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-
-import {
-getFirestore,
-collection,
-onSnapshot,
-doc,
-getDoc,
-query,
-where
-}
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-import {
-getAuth,
-onAuthStateChanged
-}
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-const firebaseConfig={
+const firebaseConfig = {
 apiKey:"AIzaSyD3hAvhSDs-lX7ORCOR0DODT3l_S_gJA2o",
 authDomain:"arshi-market.firebaseapp.com",
 projectId:"arshi-market"
 };
 
-const app=initializeApp(firebaseConfig);
-const db=getFirestore(app);
-const auth=getAuth(app);
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
 
 let country="";
 let currentCategory="";
@@ -219,84 +202,55 @@ const snap=await getDoc(doc(db,"users",user.uid));
 if(!snap.exists()) return;
 
 country=snap.data().country || "السودان";
-document.getElementById("countryName").innerText=
-"📍 الدولة: "+country;
-
+document.getElementById("countryName").innerText="📍 الدولة: "+country;
 loadStates();
 });
 
 window.selectCategory=(btn,cat)=>{
-document.querySelectorAll(".categories button")
-.forEach(b=>b.classList.remove("active"));
-
+document.querySelectorAll(".categories button").forEach(b=>b.classList.remove("active"));
 btn.classList.add("active");
 currentCategory=cat;
 loadStates();
 };
 
-/* تحميل الولايات او نوع التجارة */
 function loadStates(){
-
 const box=document.getElementById("statesBox");
 box.innerHTML="";
 
-/* قسم التجارة */
+/* إذا كانت التجارة */
 if(currentCategory==="تجارة"){
-
 ["بيع أفراد","بيع جملة"].forEach((t,i)=>{
-
 const b=document.createElement("button");
 b.textContent=t;
-
 b.onclick=()=>{
-document.querySelectorAll(".states button")
-.forEach(x=>x.classList.remove("active"));
-
+document.querySelectorAll(".states button").forEach(x=>x.classList.remove("active"));
 b.classList.add("active");
 currentState=t;
 loadProducts();
 };
-
-if(i===0){
-currentState=t;
-b.classList.add("active");
-}
-
+if(i===0){ currentState=t; b.classList.add("active"); }
 box.appendChild(b);
 });
-
 return;
 }
 
 /* باقي الأقسام */
 (statesByCountry[country]||[]).forEach((s,i)=>{
-
 const b=document.createElement("button");
 b.textContent=s;
-
 b.onclick=()=>{
-document.querySelectorAll(".states button")
-.forEach(x=>x.classList.remove("active"));
-
+document.querySelectorAll(".states button").forEach(x=>x.classList.remove("active"));
 b.classList.add("active");
 currentState=s;
 loadProducts();
 };
-
-if(i===0){
-currentState=s;
-b.classList.add("active");
-}
-
+if(i===0){ currentState=s; b.classList.add("active"); }
 box.appendChild(b);
 });
-
 loadProducts();
 }
 
-/* تحميل المنتجات */
 function loadProducts(){
-
 if(!currentCategory || !currentState) return;
 
 const box=document.getElementById("products");
@@ -304,82 +258,47 @@ box.innerHTML="⏳ جاري التحميل...";
 
 if(unsubscribe) unsubscribe();
 
-const q=query(
-collection(db,"products"),
+let q;
+if(currentCategory==="تجارة"){
+q=query(collection(db,"products"),
 where("category","==",currentCategory),
 where("city","==",currentState)
 );
-
-unsubscribe=onSnapshot(q,snap=>{
-
-box.innerHTML="";
-
-if(snap.empty){
-box.innerHTML="😢 لا توجد منتجات";
-return;
+}else{
+q=query(collection(db,"products"),
+where("category","==",currentCategory),
+where("city","==",currentState)
+);
 }
 
-snap.forEach(docSnap=>{
+unsubscribe=onSnapshot(q,snap=>{
+box.innerHTML="";
+if(snap.empty){ box.innerHTML="😢 لا توجد منتجات"; return; }
 
+snap.forEach(docSnap=>{
 const p = docSnap.data();
 
-/* الصور */
-const imagesHtml =
-Array.isArray(p.images) && p.images.length
-? p.images.slice(0,3).map(img=>`
-<img src="${img}"
-loading="lazy"
-onclick="viewImage('${img}')">
-`).join("")
-:
-`<img src="https://via.placeholder.com/300x200?text=No+Image">`;
+/* عرض كل الصور */
+const imagesHtml = Array.isArray(p.images)&&p.images.length
+? p.images.map(img=>`<img src="${img}" onclick="viewImage('${img}')">`).join("")
+: `<img src="https://via.placeholder.com/300x200?text=No+Image">`;
 
 /* واتساب */
 const cleanNumber=(p.whatsapp||"").replace(/\D/g,"");
-
-const message=encodeURIComponent(
-"مرحبًا 👋\nأرغب في الاستفسار عن المنتج:\n"+p.title
-);
-
-const whatsappLink=
-`https://wa.me/${cleanNumber}?text=${message}`;
+const message=encodeURIComponent("مرحبًا 👋\nأرغب في الاستفسار عن المنتج:\n"+p.title);
+const whatsappLink=`https://wa.me/${cleanNumber}?text=${message}`;
 
 box.innerHTML+=`
 <div class="product-card">
-
-<div class="product-images">
-${imagesHtml}
-</div>
-
+<div class="product-images">${imagesHtml}</div>
 <b>${p.title}</b>
-
 <div class="price">${p.price}</div>
-
-<div class="product-info">
-📂 ${p.category}<br>
-📍 ${p.city}
-</div>
-
-<div class="whatsapp-number">
-📞 ${p.whatsapp || "غير متوفر"}
-</div>
-
-${
-p.whatsapp
-? `<button class="whatsapp-btn"
-onclick="window.open('${whatsappLink}','_blank')">
-💬 تواصل عبر واتساب
-</button>`
-: ""
-}
-
-</div>
-`;
-
+<div class="product-info">📂 ${p.category}<br>📍 ${p.city}</div>
+<div class="whatsapp-number">📞 ${p.whatsapp||"غير متوفر"}</div>
+${p.whatsapp?`<button class="whatsapp-btn" onclick="window.open('${whatsappLink}','_blank')">💬 تواصل عبر واتساب</button>`:""}
+</div>`;
 });
-
 });
-
 }
 
 window.viewImage=(src)=>{
@@ -389,7 +308,6 @@ document.getElementById("imageViewer").style.display="flex";
 
 window.go=p=>location.href=p;
 window.goAddProduct=()=>location.href="add-product.html";
-
 </script>
 
 </body>
