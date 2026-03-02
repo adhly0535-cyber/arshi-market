@@ -117,24 +117,22 @@ const publishBtn = document.getElementById("publishBtn");
 const successBox = document.getElementById("successBox");
 
 let country = "";
-let uploadedImages = []; // هنا نخزن الروابط الصحيحة
+let uploadedImages = []; // هنا نخزن روابط الصور كاملة
 
 /* تفعيل Uploadcare */
 const widget = uploadcare.Widget('[role=uploadcare-uploader]');
 
-widget.onUploadComplete(function(info){
+// استخدام onChange لضمان التعامل مع كل الملفات
+widget.onChange(fileList => {
+  uploadedImages = []; // نظف المصفوفة عند كل تغيير
+  if (!fileList || !fileList.filesCount) return;
 
-  uploadedImages = [];
-
-  if(info.files){
-    info.files().forEach(file=>{
-      uploadedImages.push(file.cdnUrl + "-/resize/800x/");
-    });
-  }else{
-    uploadedImages.push(info.cdnUrl + "-/resize/800x/");
-  }
-
+  fileList.files().forEach(async filePromise => {
+    const fileInfo = await filePromise.promise(); // الحصول على معلومات كل ملف
+    uploadedImages.push(fileInfo.cdnUrl); // خزن الرابط الكامل
+  });
 });
+
 /* الولايات السودان */
 const statesByCountry = {
   "السودان":[
@@ -199,7 +197,6 @@ publishBtn.addEventListener("click", async ()=>{
   try{
 
     const user = auth.currentUser;
-
     const selectedCity = document.getElementById("city").value;
     const selectedCategory = typeSelect.value;
 
@@ -219,7 +216,7 @@ publishBtn.addEventListener("click", async ()=>{
       salary: document.getElementById("salary")?.value || "",
       brand: document.getElementById("brand")?.value || "",
 
-      images: uploadedImages,
+      images: uploadedImages, // الآن روابط كاملة
       userId: user.uid,
       createdAt: serverTimestamp()
     });
