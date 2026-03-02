@@ -10,36 +10,11 @@ UPLOADCARE_PUBLIC_KEY = "3ebd7495cde73c075c2e";
 <script src="https://ucarecdn.com/libs/widget/3.x/uploadcare.full.min.js"></script>
 
 <style>
-body{
-  font-family:Arial;
-  background:#f5f5f5;
-  padding:10px;
-}
-input, textarea, button, select{
-  width:100%;
-  margin:6px 0;
-  padding:10px;
-  font-size:14px;
-}
-button{
-  background:#4CAF50;
-  color:#fff;
-  border:none;
-  border-radius:6px;
-  cursor:pointer;
-}
-button:disabled{
-  background:#999;
-}
-.success-box{
-  background:#1e1e1e;
-  color:#fff;
-  padding:20px;
-  border-radius:12px;
-  text-align:center;
-  margin-top:15px;
-  display:none;
-}
+body{ font-family:Arial; background:#f5f5f5; padding:10px; }
+input, textarea, button, select{ width:100%; margin:6px 0; padding:10px; font-size:14px; }
+button{ background:#4CAF50; color:#fff; border:none; border-radius:6px; cursor:pointer; }
+button:disabled{ background:#999; }
+.success-box{ background:#1e1e1e; color:#fff; padding:20px; border-radius:12px; text-align:center; margin-top:15px; display:none; }
 </style>
 </head>
 
@@ -117,42 +92,37 @@ const publishBtn = document.getElementById("publishBtn");
 const successBox = document.getElementById("successBox");
 
 let country = "";
-let uploadedImages = []; // هنا نخزن روابط الصور كاملة
+let uploadedImages = [];
 
 /* تفعيل Uploadcare */
 const widget = uploadcare.Widget('[role=uploadcare-uploader]');
 
-// إصلاح التعامل مع الصور بشكل صحيح
-widget.onChange(async fileList => {
+/* هذا الجزء يضمن أن روابط الصور كاملة عند الانتهاء */
+widget.onUploadComplete(info => {
   uploadedImages = [];
-  if (!fileList || !fileList.filesCount) return;
-
-  const promises = fileList.files().map(f => f.promise());
-  const filesInfo = await Promise.all(promises);
-  uploadedImages = filesInfo.map(f => f.cdnUrl); // روابط كاملة جاهزة للنشر
+  if(info.files){
+    info.files().forEach(file => {
+      uploadedImages.push(file.cdnUrl + "-/resize/800x/");
+    });
+  } else {
+    uploadedImages.push(info.cdnUrl + "-/resize/800x/");
+  }
 });
 
 /* الولايات السودان */
 const statesByCountry = {
-  "السودان":[
-    "الخرطوم","الجزيرة","نهر النيل","البحر الأحمر","كسلا","القضارف",
-    "سنار","النيل الأبيض","شمال كردفان","جنوب كردفان","غرب كردفان",
-    "شمال دارفور","جنوب دارفور","غرب دارفور","وسط دارفور","شرق دارفور",
-    "الشمالية","النيل الأزرق"
-  ]
+  "السودان":[ "الخرطوم","الجزيرة","نهر النيل","البحر الأحمر","كسلا","القضارف",
+  "سنار","النيل الأبيض","شمال كردفان","جنوب كردفان","غرب كردفان","شمال دارفور",
+  "جنوب دارفور","غرب دارفور","وسط دارفور","شرق دارفور","الشمالية","النيل الأزرق"]
 };
 
 onAuthStateChanged(auth, async(user)=>{
-  if(!user){
-    location.href = "login.html";
-    return;
-  }
-
+  if(!user){ location.href="login.html"; return; }
   const snap = await getDoc(doc(db,"users",user.uid));
   if(snap.exists()){
-    country = snap.data().country;
+    country = snap.data().country || "السودان";
     citySelect.innerHTML = `<option value="">اختر الولاية / المدينة</option>`;
-    (statesByCountry[country] || []).forEach(c=>{
+    (statesByCountry[country]||[]).forEach(c=>{
       const o = document.createElement("option");
       o.value = c;
       o.textContent = c;
@@ -164,19 +134,15 @@ onAuthStateChanged(auth, async(user)=>{
 /* الحقول حسب النوع */
 typeSelect.addEventListener("change", ()=>{
   extra.innerHTML = "";
-
   if(typeSelect.value === "سيارات"){
     extra.innerHTML = `<input id="model" placeholder="الموديل">`;
   }
-
   if(typeSelect.value === "عقارات"){
     extra.innerHTML = `<input id="rooms" placeholder="عدد الغرف"><input id="area" placeholder="المساحة بالمتر">`;
   }
-
   if(typeSelect.value === "وظائف"){
     extra.innerHTML = `<input id="salary" placeholder="الراتب">`;
   }
-
   if(typeSelect.value === "هواتف" || typeSelect.value === "لابتوبات"){
     extra.innerHTML = `<input id="brand" placeholder="الشركة">`;
   }
@@ -184,17 +150,14 @@ typeSelect.addEventListener("change", ()=>{
 
 /* نشر المنتج */
 publishBtn.addEventListener("click", async ()=>{
-
   if(uploadedImages.length === 0){
     alert("يرجى إضافة صورة واحدة على الأقل");
     return;
   }
-
   publishBtn.disabled = true;
   publishBtn.innerText = "جاري النشر...";
 
   try{
-
     const user = auth.currentUser;
     const selectedCity = document.getElementById("city").value;
     const selectedCategory = typeSelect.value;
@@ -208,22 +171,19 @@ publishBtn.addEventListener("click", async ()=>{
       category: selectedCategory,
       country: country,
       whatsapp: document.getElementById("whatsapp").value,
-
       model: document.getElementById("model")?.value || "",
       rooms: document.getElementById("rooms")?.value || "",
       area: document.getElementById("area")?.value || "",
       salary: document.getElementById("salary")?.value || "",
       brand: document.getElementById("brand")?.value || "",
-
-      images: uploadedImages, // روابط الصور الكاملة
+      images: uploadedImages,
       userId: user.uid,
       createdAt: serverTimestamp()
     });
 
     successBox.style.display = "block";
     publishBtn.innerText = "✅ تم النشر";
-
-    uploadedImages = []; // تنظيف بعد النشر
+    uploadedImages = [];
 
     setTimeout(()=>{
       window.location.href = `products.html?category=${encodeURIComponent(selectedCategory)}&city=${encodeURIComponent(selectedCity)}`;
@@ -235,10 +195,8 @@ publishBtn.addEventListener("click", async ()=>{
     publishBtn.disabled = false;
     publishBtn.innerText = "📤 نشر المنتج";
   }
-
 });
 
 </script>
-
 </body>
   </html>
