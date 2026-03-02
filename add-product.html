@@ -122,15 +122,14 @@ let uploadedImages = []; // هنا نخزن روابط الصور كاملة
 /* تفعيل Uploadcare */
 const widget = uploadcare.Widget('[role=uploadcare-uploader]');
 
-// استخدام onChange لضمان التعامل مع كل الملفات
-widget.onChange(fileList => {
-  uploadedImages = []; // نظف المصفوفة عند كل تغيير
+// إصلاح التعامل مع الصور بشكل صحيح
+widget.onChange(async fileList => {
+  uploadedImages = [];
   if (!fileList || !fileList.filesCount) return;
 
-  fileList.files().forEach(async filePromise => {
-    const fileInfo = await filePromise.promise(); // الحصول على معلومات كل ملف
-    uploadedImages.push(fileInfo.cdnUrl); // خزن الرابط الكامل
-  });
+  const promises = fileList.files().map(f => f.promise());
+  const filesInfo = await Promise.all(promises);
+  uploadedImages = filesInfo.map(f => f.cdnUrl); // روابط كاملة جاهزة للنشر
 });
 
 /* الولايات السودان */
@@ -216,7 +215,7 @@ publishBtn.addEventListener("click", async ()=>{
       salary: document.getElementById("salary")?.value || "",
       brand: document.getElementById("brand")?.value || "",
 
-      images: uploadedImages, // الآن روابط كاملة
+      images: uploadedImages, // روابط الصور الكاملة
       userId: user.uid,
       createdAt: serverTimestamp()
     });
