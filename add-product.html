@@ -97,16 +97,26 @@ let uploadedImages = [];
 /* تفعيل Uploadcare */
 const widget = uploadcare.Widget('[role=uploadcare-uploader]');
 
-/* هذا الجزء يضمن أن روابط الصور كاملة عند الانتهاء */
-widget.onUploadComplete(info => {
+
+widget.onUploadComplete(function(info){
+
   uploadedImages = [];
-  if(info.files){
-    info.files().forEach(file => {
+
+  // إذا كان رفع متعدد (Group)
+  if (info.isGroup) {
+
+    info.files().forEach(function(file){
       uploadedImages.push(file.cdnUrl + "-/resize/800x/");
     });
-  } else {
+
+  } 
+  // إذا صورة واحدة
+  else {
+
     uploadedImages.push(info.cdnUrl + "-/resize/800x/");
+
   }
+
 });
 
 /* الولايات السودان */
