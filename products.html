@@ -55,15 +55,16 @@ padding:8px;
 border-radius:10px;
 }
 
+/* الصور المصغرة */
 .product-images{
-display:flex;
+display:grid;
+grid-template-columns:repeat(3,1fr);
 gap:4px;
-flex-wrap:wrap;
 }
 
 .product-images img{
-width:32%;
-height:90px;
+width:100%;
+height:85px;
 object-fit:cover;
 border-radius:6px;
 cursor:pointer;
@@ -77,11 +78,6 @@ font-weight:bold;
 .product-info{
 font-size:13px;
 color:#555;
-margin-top:4px;
-}
-
-.whatsapp-number{
-font-size:13px;
 margin-top:4px;
 }
 
@@ -121,19 +117,39 @@ font-size:28px;
 cursor:pointer;
 }
 
+/* عارض الصور */
 .image-viewer{
 position:fixed;
 inset:0;
-background:rgba(0,0,0,.85);
+background:black;
 display:none;
 align-items:center;
 justify-content:center;
 z-index:9999;
 }
 
-.image-viewer img{
-max-width:95%;
-max-height:95%;
+.image-slider{
+display:flex;
+overflow-x:auto;
+scroll-snap-type:x mandatory;
+width:100%;
+height:100%;
+}
+
+.image-slider img{
+width:100%;
+height:100%;
+object-fit:contain;
+scroll-snap-align:center;
+}
+
+.close-viewer{
+position:absolute;
+top:20px;
+right:20px;
+color:white;
+font-size:30px;
+cursor:pointer;
 }
 </style>
 </head>
@@ -161,24 +177,27 @@ max-height:95%;
 <button onclick="go('settings.html')">⚙️</button>
 </div>
 
-<div class="image-viewer" id="imageViewer" onclick="this.style.display='none'">
-<img id="viewerImg">
+<!-- عارض الصور -->
+<div class="image-viewer" id="imageViewer">
+<div class="close-viewer" onclick="closeViewer()">✕</div>
+<div class="image-slider" id="imageSlider"></div>
 </div>
 
 <script type="module">
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, onSnapshot, doc, getDoc, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-const firebaseConfig = {
+const firebaseConfig={
 apiKey:"AIzaSyD3hAvhSDs-lX7ORCOR0DODT3l_S_gJA2o",
 authDomain:"arshi-market.firebaseapp.com",
 projectId:"arshi-market"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
+const app=initializeApp(firebaseConfig);
+const db=getFirestore(app);
+const auth=getAuth(app);
 
 let country="";
 let currentCategory="";
@@ -217,40 +236,30 @@ function loadStates(){
 const box=document.getElementById("statesBox");
 box.innerHTML="";
 
-/* إذا كانت التجارة */
-if(currentCategory==="تجارة"){
-["بيع أفراد","بيع جملة"].forEach((t,i)=>{
-const b=document.createElement("button");
-b.textContent=t;
-b.onclick=()=>{
-document.querySelectorAll(".states button").forEach(x=>x.classList.remove("active"));
-b.classList.add("active");
-currentState=t;
-loadProducts();
-};
-if(i===0){ currentState=t; b.classList.add("active"); }
-box.appendChild(b);
-});
-return;
-}
-
-/* باقي الأقسام */
 (statesByCountry[country]||[]).forEach((s,i)=>{
 const b=document.createElement("button");
 b.textContent=s;
+
 b.onclick=()=>{
 document.querySelectorAll(".states button").forEach(x=>x.classList.remove("active"));
 b.classList.add("active");
 currentState=s;
 loadProducts();
 };
-if(i===0){ currentState=s; b.classList.add("active"); }
+
+if(i===0){
+currentState=s;
+b.classList.add("active");
+}
+
 box.appendChild(b);
 });
+
 loadProducts();
 }
 
 function loadProducts(){
+
 if(!currentCategory || !currentState) return;
 
 const box=document.getElementById("products");
@@ -258,57 +267,88 @@ box.innerHTML="⏳ جاري التحميل...";
 
 if(unsubscribe) unsubscribe();
 
-let q;
-if(currentCategory==="تجارة"){
-q=query(collection(db,"products"),
+const q=query(collection(db,"products"),
 where("category","==",currentCategory),
 where("city","==",currentState)
 );
-}else{
-q=query(collection(db,"products"),
-where("category","==",currentCategory),
-where("city","==",currentState)
-);
-}
 
 unsubscribe=onSnapshot(q,snap=>{
+
 box.innerHTML="";
-if(snap.empty){ box.innerHTML="😢 لا توجد منتجات"; return; }
+
+if(snap.empty){
+box.innerHTML="😢 لا توجد منتجات";
+return;
+}
 
 snap.forEach(docSnap=>{
-const p = docSnap.data();
 
-/* عرض كل الصور */
-const imagesHtml = Array.isArray(p.images)&&p.images.length
-? p.images.map(img=>`<img src="${img}" onclick="viewImage('${img}')">`).join("")
-: `<img src="https://via.placeholder.com/300x200?text=No+Image">`;
+const p=docSnap.data();
 
-/* واتساب */
+const imagesHtml=Array.isArray(p.images)
+? p.images.map((img,i)=>`<img src="${img}" onclick='openViewer(${JSON.stringify(p.images)},${i})'>`).join("")
+: "";
+
 const cleanNumber=(p.whatsapp||"").replace(/\D/g,"");
 const message=encodeURIComponent("مرحبًا 👋\nأرغب في الاستفسار عن المنتج:\n"+p.title);
 const whatsappLink=`https://wa.me/${cleanNumber}?text=${message}`;
 
 box.innerHTML+=`
 <div class="product-card">
-<div class="product-images">${imagesHtml}</div>
+
+<div class="product-images">
+${imagesHtml}
+</div>
+
 <b>${p.title}</b>
+
 <div class="price">${p.price}</div>
-<div class="product-info">📂 ${p.category}<br>📍 ${p.city}</div>
-<div class="whatsapp-number">📞 ${p.whatsapp||"غير متوفر"}</div>
+
+<div class="product-info">
+📂 ${p.category}<br>
+📍 ${p.city}
+</div>
+
 ${p.whatsapp?`<button class="whatsapp-btn" onclick="window.open('${whatsappLink}','_blank')">💬 تواصل عبر واتساب</button>`:""}
+
 </div>`;
 });
+
 });
+
 }
 
-window.viewImage=(src)=>{
-document.getElementById("viewerImg").src=src;
-document.getElementById("imageViewer").style.display="flex";
+/* فتح عارض الصور */
+
+window.openViewer=(images,start)=>{
+
+const viewer=document.getElementById("imageViewer");
+const slider=document.getElementById("imageSlider");
+
+slider.innerHTML="";
+
+images.forEach(src=>{
+const img=document.createElement("img");
+img.src=src;
+slider.appendChild(img);
+});
+
+viewer.style.display="flex";
+
+setTimeout(()=>{
+slider.scrollLeft=start*window.innerWidth;
+},100);
+
+};
+
+window.closeViewer=()=>{
+document.getElementById("imageViewer").style.display="none";
 };
 
 window.go=p=>location.href=p;
 window.goAddProduct=()=>location.href="add-product.html";
+
 </script>
 
 </body>
-  </html>
+</html>
