@@ -5,6 +5,7 @@
 <title>Arshi Market</title>
 
 <style>
+
 body{
 font-family:Arial;
 margin:0;
@@ -55,7 +56,6 @@ padding:8px;
 border-radius:10px;
 }
 
-/* الصور المصغرة */
 .product-images{
 display:grid;
 grid-template-columns:repeat(3,1fr);
@@ -118,9 +118,13 @@ cursor:pointer;
 }
 
 /* عارض الصور */
+
 .image-viewer{
 position:fixed;
-inset:0;
+top:0;
+left:0;
+width:100%;
+height:100%;
 background:black;
 display:none;
 align-items:center;
@@ -128,29 +132,21 @@ justify-content:center;
 z-index:9999;
 }
 
-.image-slider{
-display:flex;
-overflow-x:auto;
-scroll-snap-type:x mandatory;
-width:100%;
-height:100%;
-}
-
-.image-slider img{
-width:100%;
-height:100%;
+.image-viewer img{
+max-width:95%;
+max-height:95%;
 object-fit:contain;
-scroll-snap-align:center;
 }
 
 .close-viewer{
 position:absolute;
 top:20px;
-right:20px;
+right:25px;
 color:white;
-font-size:30px;
+font-size:35px;
 cursor:pointer;
 }
+
 </style>
 </head>
 
@@ -177,10 +173,11 @@ cursor:pointer;
 <button onclick="go('settings.html')">⚙️</button>
 </div>
 
-<!-- عارض الصور -->
+<!-- عارض الصورة -->
+
 <div class="image-viewer" id="imageViewer">
-<div class="close-viewer" onclick="closeViewer()">✕</div>
-<div class="image-slider" id="imageSlider"></div>
+<span class="close-viewer" onclick="closeViewer()">×</span>
+<img id="viewerImg">
 </div>
 
 <script type="module">
@@ -215,47 +212,71 @@ const statesByCountry={
 };
 
 onAuthStateChanged(auth,async(user)=>{
+
 if(!user) return;
 
 const snap=await getDoc(doc(db,"users",user.uid));
+
 if(!snap.exists()) return;
 
 country=snap.data().country || "السودان";
+
 document.getElementById("countryName").innerText="📍 الدولة: "+country;
+
 loadStates();
+
 });
 
 window.selectCategory=(btn,cat)=>{
+
 document.querySelectorAll(".categories button").forEach(b=>b.classList.remove("active"));
+
 btn.classList.add("active");
+
 currentCategory=cat;
+
 loadStates();
+
 };
 
 function loadStates(){
+
 const box=document.getElementById("statesBox");
+
 box.innerHTML="";
 
 (statesByCountry[country]||[]).forEach((s,i)=>{
+
 const b=document.createElement("button");
+
 b.textContent=s;
 
 b.onclick=()=>{
+
 document.querySelectorAll(".states button").forEach(x=>x.classList.remove("active"));
+
 b.classList.add("active");
+
 currentState=s;
+
 loadProducts();
+
 };
 
 if(i===0){
+
 currentState=s;
+
 b.classList.add("active");
+
 }
 
 box.appendChild(b);
+
 });
 
 loadProducts();
+
 }
 
 function loadProducts(){
@@ -263,11 +284,13 @@ function loadProducts(){
 if(!currentCategory || !currentState) return;
 
 const box=document.getElementById("products");
+
 box.innerHTML="⏳ جاري التحميل...";
 
 if(unsubscribe) unsubscribe();
 
-const q=query(collection(db,"products"),
+const q=query(
+collection(db,"products"),
 where("category","==",currentCategory),
 where("city","==",currentState)
 );
@@ -277,27 +300,47 @@ unsubscribe=onSnapshot(q,snap=>{
 box.innerHTML="";
 
 if(snap.empty){
+
 box.innerHTML="😢 لا توجد منتجات";
+
 return;
+
 }
 
 snap.forEach(docSnap=>{
 
 const p=docSnap.data();
 
-const imagesHtml=Array.isArray(p.images)
-? p.images.map((img,i)=>`<img src="${img}" onclick='openViewer(${JSON.stringify(p.images)},${i})'>`).join("")
-: "";
+let images=Array.isArray(p.images)?p.images:[];
+
+let imagesHtml="";
+
+if(images.length){
+
+imagesHtml=images.slice(0,3).map(img=>`
+<img src="${img}" onclick="openViewer('${img}')">
+`).join("");
+
+}else{
+
+imagesHtml=`<img src="https://via.placeholder.com/300x200?text=No+Image">`;
+
+}
 
 const cleanNumber=(p.whatsapp||"").replace(/\D/g,"");
+
 const message=encodeURIComponent("مرحبًا 👋\nأرغب في الاستفسار عن المنتج:\n"+p.title);
+
 const whatsappLink=`https://wa.me/${cleanNumber}?text=${message}`;
 
 box.innerHTML+=`
+
 <div class="product-card">
 
 <div class="product-images">
+
 ${imagesHtml}
+
 </div>
 
 <b>${p.title}</b>
@@ -305,47 +348,41 @@ ${imagesHtml}
 <div class="price">${p.price}</div>
 
 <div class="product-info">
+
 📂 ${p.category}<br>
+
 📍 ${p.city}
+
 </div>
 
 ${p.whatsapp?`<button class="whatsapp-btn" onclick="window.open('${whatsappLink}','_blank')">💬 تواصل عبر واتساب</button>`:""}
 
-</div>`;
+</div>
+
+`;
+
 });
 
 });
 
 }
 
-/* فتح عارض الصور */
+window.openViewer=(src)=>{
 
-window.openViewer=(images,start)=>{
+document.getElementById("viewerImg").src=src;
 
-const viewer=document.getElementById("imageViewer");
-const slider=document.getElementById("imageSlider");
+document.getElementById("imageViewer").style.display="flex";
 
-slider.innerHTML="";
-
-images.forEach(src=>{
-const img=document.createElement("img");
-img.src=src;
-slider.appendChild(img);
-});
-
-viewer.style.display="flex";
-
-setTimeout(()=>{
-slider.scrollLeft=start*window.innerWidth;
-},100);
-
-};
+}
 
 window.closeViewer=()=>{
+
 document.getElementById("imageViewer").style.display="none";
-};
+
+}
 
 window.go=p=>location.href=p;
+
 window.goAddProduct=()=>location.href="add-product.html";
 
 </script>
