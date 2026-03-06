@@ -10,11 +10,36 @@ UPLOADCARE_PUBLIC_KEY = "3ebd7495cde73c075c2e";
 <script src="https://ucarecdn.com/libs/widget/3.x/uploadcare.full.min.js"></script>
 
 <style>
-body{ font-family:Arial; background:#f5f5f5; padding:10px; }
-input, textarea, button, select{ width:100%; margin:6px 0; padding:10px; font-size:14px; }
-button{ background:#4CAF50; color:#fff; border:none; border-radius:6px; cursor:pointer; }
-button:disabled{ background:#999; }
-.success-box{ background:#1e1e1e; color:#fff; padding:20px; border-radius:12px; text-align:center; margin-top:15px; display:none; }
+body{
+  font-family:Arial;
+  background:#f5f5f5;
+  padding:10px;
+}
+input, textarea, button, select{
+  width:100%;
+  margin:6px 0;
+  padding:10px;
+  font-size:14px;
+}
+button{
+  background:#4CAF50;
+  color:#fff;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+}
+button:disabled{
+  background:#999;
+}
+.success-box{
+  background:#1e1e1e;
+  color:#fff;
+  padding:20px;
+  border-radius:12px;
+  text-align:center;
+  margin-top:15px;
+  display:none;
+}
 </style>
 </head>
 
@@ -48,6 +73,7 @@ button:disabled{ background:#999; }
 
 <input id="whatsapp" placeholder="رقم واتساب (249XXXXXXXXX)" required>
 
+<!-- رفع الصور -->
 <input
   role="uploadcare-uploader"
   data-public-key="3ebd7495cde73c075c2e"
@@ -105,17 +131,13 @@ widget.onUploadComplete(function(info){
     info.files().forEach(function(file){
 
       file.done(function(fileInfo){
-
         uploadedImages.push(fileInfo.cdnUrl);
-
       });
 
     });
 
   }else{
-
     uploadedImages.push(info.cdnUrl);
-
   }
 
 });
@@ -128,7 +150,11 @@ const statesByCountry = {
 };
 
 onAuthStateChanged(auth, async(user)=>{
-  if(!user){ location.href="login.html"; return; }
+  if(!user){
+    location.href="login.html";
+    return;
+  }
+
   const snap = await getDoc(doc(db,"users",user.uid));
   if(snap.exists()){
     country = snap.data().country || "السودان";
@@ -161,15 +187,24 @@ typeSelect.addEventListener("change", ()=>{
 
 /* نشر المنتج */
 publishBtn.addEventListener("click", async ()=>{
+
+  const user = auth.currentUser;
+
+  if(!user){
+    alert("يجب تسجيل الدخول");
+    return;
+  }
+
   if(uploadedImages.length === 0){
     alert("يرجى إضافة صورة واحدة على الأقل");
     return;
   }
+
   publishBtn.disabled = true;
   publishBtn.innerText = "جاري النشر...";
 
   try{
-    const user = auth.currentUser;
+
     const selectedCity = document.getElementById("city").value;
     const selectedCategory = typeSelect.value;
 
@@ -210,4 +245,4 @@ publishBtn.addEventListener("click", async ()=>{
 
 </script>
 </body>
-  </html>
+</html>
