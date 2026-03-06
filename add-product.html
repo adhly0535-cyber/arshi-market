@@ -94,26 +94,27 @@ const successBox = document.getElementById("successBox");
 let country = "";
 let uploadedImages = [];
 
-/* تفعيل Uploadcare */
 const widget = uploadcare.Widget('[role=uploadcare-uploader]');
-
 
 widget.onUploadComplete(function(info){
 
   uploadedImages = [];
 
-  // إذا كان رفع متعدد (Group)
-  if (info.isGroup) {
+  if(info.isGroup){
 
     info.files().forEach(function(file){
-      uploadedImages.push(file.cdnUrl + "-/resize/800x/");
+
+      file.done(function(fileInfo){
+
+        uploadedImages.push(fileInfo.cdnUrl);
+
+      });
+
     });
 
-  } 
-  // إذا صورة واحدة
-  else {
+  }else{
 
-    uploadedImages.push(info.cdnUrl + "-/resize/800x/");
+    uploadedImages.push(info.cdnUrl);
 
   }
 
