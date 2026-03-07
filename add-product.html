@@ -124,20 +124,26 @@ const widget = uploadcare.Widget('[role=uploadcare-uploader]');
 
 widget.onUploadComplete(function(info){
 
-  uploadedImages = [];
+  if(!uploadedImages){
+    uploadedImages = [];
+  }
 
   if(info.isGroup){
 
     info.files().forEach(function(file){
 
       file.done(function(fileInfo){
-        uploadedImages.push(fileInfo.cdnUrl);
+
+        uploadedImages.push(fileInfo.cdnUrl + "-/preview/");
+
       });
 
     });
 
   }else{
-    uploadedImages.push(info.cdnUrl);
+
+    uploadedImages.push(info.cdnUrl + "-/preview/");
+
   }
 
 });
