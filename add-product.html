@@ -122,7 +122,7 @@ let uploadedImages = [];
 
 const widget = uploadcare.Widget('[role=uploadcare-uploader]');
 
-  widget.onUploadComplete(function(info){
+widget.onUploadComplete(function(info){
 
   if(!uploadedImages){
     uploadedImages = [];
@@ -134,7 +134,9 @@ const widget = uploadcare.Widget('[role=uploadcare-uploader]');
 
       file.done(function(fileInfo){
 
-        uploadedImages.push(fileInfo.cdnUrl + "nth/0/");
+        uploadedImages.push(
+          fileInfo.cdnUrl.replace("ucarecd.net","ucarecdn.net") + "nth/0/"
+        );
 
       });
 
@@ -142,7 +144,9 @@ const widget = uploadcare.Widget('[role=uploadcare-uploader]');
 
   }else{
 
-    uploadedImages.push(info.cdnUrl + "nth/0/");
+    uploadedImages.push(
+      info.cdnUrl.replace("ucarecd.net","ucarecdn.net") + "nth/0/"
+    );
 
   }
 
