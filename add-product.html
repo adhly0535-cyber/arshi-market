@@ -122,7 +122,7 @@ let uploadedImages = [];
 
 const widget = uploadcare.Widget('[role=uploadcare-uploader]');
 
-widget.onUploadComplete(function(info){
+  widget.onUploadComplete(function(info){
 
   if(!uploadedImages){
     uploadedImages = [];
@@ -134,7 +134,7 @@ widget.onUploadComplete(function(info){
 
       file.done(function(fileInfo){
 
-        uploadedImages.push(fileInfo.cdnUrl + "-/preview/");
+        uploadedImages.push(fileInfo.cdnUrl + "nth/0/");
 
       });
 
@@ -142,7 +142,7 @@ widget.onUploadComplete(function(info){
 
   }else{
 
-    uploadedImages.push(info.cdnUrl + "-/preview/");
+    uploadedImages.push(info.cdnUrl + "nth/0/");
 
   }
 
